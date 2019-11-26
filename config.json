@@ -1,0 +1,27 @@
+{
+	"Disabled": [
+		false,
+		"bool"
+	],
+    "IncludeInMobile": [
+		true,
+		"bool"
+	],
+    "IncludeInDesktop": [
+		true,
+		"bool"
+	],
+	"BusinessTenantLimits": [
+		[{
+			"AliasesCount": 20,
+			"EmailAccountsCount": 10,
+			"MailStorageQuotaMb": 102400,
+			"FilesStorageQuotaMb": 102400
+		}],
+		"array"
+	],
+	"GroupwareModules": [
+		["CorporateCalendar", "S3CorporateFilestorage", "SharedContacts", "SharedFiles", "TeamContacts", "OutlookSyncWebclient"],
+		"array"
+	]
+}
