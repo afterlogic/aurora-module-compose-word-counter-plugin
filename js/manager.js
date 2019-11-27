@@ -59,10 +59,15 @@ module.exports = function (oAppData) {
           if (!bInitialized && oParams.Name === 'CComposeView') {
             if (ko.isSubscribable(oParams.View.oHtmlEditor.actualTextСhanged)) {
               oParams.View.oHtmlEditor.actualTextСhanged.subscribe(function () {
-                var counterPanel = $('.message_panel').find('.counter-panel');
-                var panel = $('.message_panel').find('.panel_center');
-                if (counterPanel.length) counterPanel.html(`<div style="float:left; padding-right:15px"><span style="font-weight:bold;font-size:16px">${totalChar(oParams.View.oHtmlEditor.getText())}</span></br><span style="color:#5a6373;">Characters</span></div><div style="float:left; padding-right:15px"><span style="font-weight:bold;font-size:16px">${wordCounter(oParams.View.oHtmlEditor.getText())}</span></br><span style="color:#5a6373;">Words</span></div>`);
-                else panel.after(`<div style="padding: 0 12px; " class="counter-panel"><div style="float:left; padding-right:15px"><span style="font-weight:bold;font-size:16px">${totalChar(oParams.View.oHtmlEditor.getText())}</span></br><span style="color:#5a6373;">Characters</span></div><div style="float:left; padding-right:15px"><span style="font-weight:bold;font-size:16px">${wordCounter(oParams.View.oHtmlEditor.getText())}</span></br><span style="color:#5a6373;">Words</span></div></div>`);
+                var counterPanelElement = $('.message_panel').find('.counter-panel');
+                var panelCenterElement = $('.message_panel').find('.panel_center');
+                var counterPanel = `<div style="box-sizing:border-box;display:flex;width: 100%;padding: 0 12px;" class="counter-panel">${charactersCounter}${wordsCounter}${sessionCounter}${amountCounter}</div>`;
+                var charactersCounter = `<div style="box-sizing:border-box;width:25%;padding:15px;border:1px solid #cccccc;border-bottom-left-radius:5px;border-top-left-radius:5px;border-right:0;background-color:#f0f0f0;"><span style="font-weight:bold;font-size:16px">${totalChar(oParams.View.oHtmlEditor.getText())}</span></br><span style="color:#5a6373;">Characters</span></div>`;
+                var wordsCounter = `<div style="box-sizing:border-box;width:25%;padding:15px;border:1px solid #cccccc;border-right:0;background-color:#f0f0f0;"><span style="font-weight:bold;font-size:16px">${wordCounter(oParams.View.oHtmlEditor.getText())}</span></br><span style="color:#5a6373;">Words</span></div>`;
+                var sessionCounter = `<div style="box-sizing:border-box;width:25%;padding:15px;border:1px solid #cccccc;border-right:0;background-color:#f0f0f0;"><span style="font-weight:bold;font-size:16px">00:00:00</span></br><span style="color:#5a6373;">Session Time</span></div>`;
+                var amountCounter = `<div style="box-sizing:border-box;width:25%;padding:15px;border:1px solid #cccccc;background-color:#f0f0f0;border-bottom-right-radius:5px;border-top-right-radius:5px;"><span style="font-weight:bold;font-size:16px">$0</span></br><span style="color:#5a6373;">Amount</span></div>`;
+                if (counterPanelElement.length) counterPanelElement.html(`${charactersCounter}${wordsCounter}${sessionCounter}${amountCounter}`);
+                else panelCenterElement.after(counterPanel);
               }, this);
             }
 
