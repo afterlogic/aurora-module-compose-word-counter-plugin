@@ -1,0 +1,47 @@
+<div class="panel_top">
+	<h2 class="settings_heading" data-bind="i18n: {'key': '%MODULENAME%/HEADING_SETTINGS_TAB'}"></h2>
+</div>
+
+<div class="panel_center">
+	<div class="fieldset">
+		<div class="fields">
+			<div class="row">
+				<span class="label" data-bind="i18n: {'key': '%MODULENAME%/LABEL_TYPING_SPEED'}"></span>
+				<select class="value input short" data-bind="options: typingSpeedValues, value: typingSpeed, optionsText: 'name', optionsValue: 'value' "></select>
+				<span class="label or-label" data-bind="i18n: {'key': '%MODULENAME%/LABEL_OR'}"></span>
+				<span class="value">
+					<input class="input short" type="text" data-bind="value: typingSpeedCPM">
+				</span>
+				<span class="label post-label" data-bind="i18n: {'key': '%MODULENAME%/LABEL_CHARACTERS_PER_MIN'}"></span>
+			</div>
+			<div class="row">
+				<span class="label" data-bind="i18n: {'key': '%MODULENAME%/LABEL_READING_SPEED'}"></span>
+				<select class="value input short" data-bind="options: readingSpeedValues, value: readingSpeed, optionsText: 'name', optionsValue: 'value' "></select>
+				<span class="label or-label" data-bind="i18n: {'key': '%MODULENAME%/LABEL_OR'}"></span>
+				<span class="value">
+					<input class="input short" type="text" data-bind="value: readingSpeedWPM">
+				</span>
+				<span class="label post-label" data-bind="i18n: {'key': '%MODULENAME%/LABEL_WORDS_PER_MIN'}"></span>
+			</div>
+			<div class="row">
+				<span class="label" data-bind="i18n: {'key': '%MODULENAME%/LABEL_HOURLY_RATE'}"></span>
+				<select class="value input short" data-bind="options: currencyValues, value: currency, optionsText: 'name', optionsValue: 'value' "></select>
+				<span class="label or-label" data-bind="i18n: {'key': '%MODULENAME%/LABEL_OR'}"></span>
+				<span class="value">
+					<input class="input short" type="text" data-bind="value: hourlyRate">
+				</span>
+			</div>
+			<div class="hint row">
+				<span class="value" data-bind="i18n: {'key': '%MODULENAME%/HINT_CPM_WPM'}"></span>
+			</div>
+		</div>
+	</div>
+	<div class="buttons">
+		<span class="button" data-bind="click: save, visible: !isSaving()">
+			<span data-bind="i18n: {'key': 'COREWEBCLIENT/ACTION_SAVE'}"></span>
+		</span>
+		<span class="button" data-bind="visible: isSaving()">
+			<span data-bind="i18n: {'key': 'COREWEBCLIENT/ACTION_SAVE_IN_PROGRESS'}"></span>
+		</span>
+	</div>
+</div>

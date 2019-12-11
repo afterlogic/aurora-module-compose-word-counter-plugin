@@ -20,5 +20,61 @@ class Module extends \Aurora\System\Module\AbstractModule
 {
 	public function init()
 	{
-  }
+		\Aurora\Modules\Core\Classes\User::extend(
+			self::GetName(),
+			[
+				'TypingSpeedCPM'	=> array('int', 0),
+				'ReadingSpeedWPM'	=> array('int', 0),
+				'CurrencyId'		=> array('int', 0),
+				'HourlyRate'		=> array('int', 0),
+			]
+		);
+	}
+
+	/**
+	 * Obtains list of module settings for authenticated user.
+	 *
+	 * @return array
+	 */
+	public function GetSettings()
+	{
+		\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::Anonymous);
+		$aSettings = null;
+		$oUser = \Aurora\System\Api::getAuthenticatedUser();
+		if (!empty($oUser) && $oUser->isNormalOrTenant())
+		{
+			$aSettings = [
+				'TypingSpeedCPM'	=> $oUser->{self::GetName().'::TypingSpeedCPM'},
+				'ReadingSpeedWPM'	=> $oUser->{self::GetName().'::ReadingSpeedWPM'},
+				'CurrencyId'		=> $oUser->{self::GetName().'::CurrencyId'},
+				'HourlyRate'		=> $oUser->{self::GetName().'::HourlyRate'},
+			];
+		}
+
+		return $aSettings;
+	}
+
+	/**
+	 * Updates settings
+	 *
+	 * @return boolean
+	 */
+	public function UpdateSettings($TypingSpeedCPM, $ReadingSpeedWPM, $CurrencyId, $HourlyRate)
+	{
+		\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::NormalUser);
+
+		$oUser = \Aurora\System\Api::getAuthenticatedUser();
+		if ($oUser instanceof \Aurora\Modules\Core\Classes\User)
+		{
+			$oCoreDecorator = \Aurora\Modules\Core\Module::Decorator();
+			$oUser->{self::GetName().'::TypingSpeedCPM'} = $TypingSpeedCPM;
+			$oUser->{self::GetName().'::ReadingSpeedWPM'} = $ReadingSpeedWPM;
+			$oUser->{self::GetName().'::CurrencyId'} = $CurrencyId;
+			$oUser->{self::GetName().'::HourlyRate'} = $HourlyRate;
+
+			return $oCoreDecorator->UpdateUserObject($oUser);
+		}
+
+		return false;
+	}
 }
