@@ -96,7 +96,7 @@ module.exports = function (oAppData) {
 								var counterPanelElement = $('.message_panel').find('.counter-panel');
 								var panelCenterElement = $('.message_panel').find('.panel_center');
 								var iTotalChar = totalChar(oParams.View.oHtmlEditor.getText());
-								var iTimeSeconds = Math.floor((iTotalChar / Settings.typingSpeedCPM()) * 60);
+								var iTimeSeconds = Settings.typingSpeedCPM() ? Math.floor((iTotalChar / Settings.typingSpeedCPM()) * 60) : 0;
 								var dTime = new Date(null);
 								dTime.setSeconds(iTimeSeconds);
 								var iAmount = (iTimeSeconds / 3600) * Settings.hourlyRate();
