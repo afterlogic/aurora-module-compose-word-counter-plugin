@@ -14,6 +14,7 @@ module.exports = {
 	readingSpeedWPM: ko.observable(0),
 	currency: ko.observable(Enums.Currency.USD),
 	hourlyRate: ko.observable(0),
+	userRole: ko.observable(Enums.WordCounterUserRole.Client),
 	/**
 	 * Initializes settings from AppData object sections.
 	 * 
@@ -29,6 +30,7 @@ module.exports = {
 			this.readingSpeedWPM(Types.pInt(oAppDataSection.ReadingSpeedWPM, this.readingSpeedWPM()));
 			this.currency(Types.pEnum(oAppDataSection.CurrencyId, Enums.Currency, this.currency()));
 			this.hourlyRate(Types.pInt(oAppDataSection.HourlyRate, this.hourlyRate()));
+			this.userRole(Types.pEnum(oAppDataSection.UserRole, Enums.WordCounterUserRole, this.userRole()));
 		}
 	},
 

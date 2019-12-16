@@ -27,6 +27,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 				'ReadingSpeedWPM'	=> array('int', 0),
 				'CurrencyId'		=> array('int', 0),
 				'HourlyRate'		=> array('int', 0),
+				'UserRole'			=> array('int', Enums\UserRole::Client)
 			]
 		);
 	}
@@ -48,6 +49,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 				'ReadingSpeedWPM'	=> $oUser->{self::GetName().'::ReadingSpeedWPM'},
 				'CurrencyId'		=> $oUser->{self::GetName().'::CurrencyId'},
 				'HourlyRate'		=> $oUser->{self::GetName().'::HourlyRate'},
+				'UserRole'			=> $oUser->{self::GetName().'::UserRole'}
 			];
 		}
 

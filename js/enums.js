@@ -13,6 +13,14 @@ Enums.Currency = {
 	'EUR': 2
 };
 
+/**
+ * @enum {number}
+ */
+Enums.WordCounterUserRole = {
+	'Client': 0,
+	'Lawyer': 1
+};
+
 if (typeof window.Enums === 'undefined')
 {
 	window.Enums = {};

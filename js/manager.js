@@ -83,11 +83,14 @@ module.exports = function (oAppData) {
 	{
 		return {
 			start: function (ModulesManager) {
-				ModulesManager.run('SettingsWebclient', 'registerSettingsTab', [
-					function () { return require('modules/%ModuleName%/js/views/ComposeWordCounterSettingsFormView.js'); },
-					Settings.HashModuleName,
-					TextUtils.i18n('%MODULENAME%/LABEL_SETTINGS_TAB')
-				]);
+				if (Settings.userRole() === Enums.WordCounterUserRole.Lawyer)
+				{
+					ModulesManager.run('SettingsWebclient', 'registerSettingsTab', [
+						function () { return require('modules/%ModuleName%/js/views/ComposeWordCounterSettingsFormView.js'); },
+						Settings.HashModuleName,
+						TextUtils.i18n('%MODULENAME%/LABEL_SETTINGS_TAB')
+					]);
+				}
 
 				App.subscribeEvent('MailWebclient::ConstructView::after', function (oParams) {
 					if (!bInitialized && oParams.Name === 'CComposeView')
@@ -99,20 +102,26 @@ module.exports = function (oAppData) {
 								var panelCenterElement = $('.message_panel').find('.panel_center');
 								iTotalChar = totalChar(oParams.View.oHtmlEditor.getText());
 								iTotalWord = wordCounter(oParams.View.oHtmlEditor.getText());
-								var iTimeSeconds = Settings.typingSpeedCPM() ? Math.floor((iTotalChar / Settings.typingSpeedCPM()) * 60) : 0;
-								var dTime = new Date(null);
-								dTime.setSeconds(iTimeSeconds);
-								var iAmount = (iTimeSeconds / 3600) * Settings.hourlyRate();
-								var counterPanel = `<div style="box-sizing:border-box;display:flex;width: 100%;padding: 0 12px;" class="counter-panel">${charactersCounter}${wordsCounter}${sessionCounter}${amountCounter}</div>`;
-								var charactersCounter = `<div style="box-sizing:border-box;width:25%;padding:15px;border:1px solid #cccccc;border-bottom-left-radius:5px;border-top-left-radius:5px;border-right:0;background-color:#f0f0f0;"><span style="font-weight:bold;font-size:16px">${iTotalChar}</span></br><span style="color:#5a6373;">Characters</span></div>`;
-								var wordsCounter = `<div style="box-sizing:border-box;width:25%;padding:15px;border:1px solid #cccccc;border-right:0;background-color:#f0f0f0;"><span style="font-weight:bold;font-size:16px">${iTotalWord}</span></br><span style="color:#5a6373;">Words</span></div>`;
-								var sessionCounter = `<div style="box-sizing:border-box;width:25%;padding:15px;border:1px solid #cccccc;border-right:0;background-color:#f0f0f0;"><span style="font-weight:bold;font-size:16px">${dTime.toISOString().substr(11, 8)}</span></br><span style="color:#5a6373;">Session Time</span></div>`;
-								var amountCounter = `<div style="box-sizing:border-box;width:25%;padding:15px;border:1px solid #cccccc;background-color:#f0f0f0;border-bottom-right-radius:5px;border-top-right-radius:5px;"><span style="font-weight:bold;font-size:16px">${getCurrencySymbol()}${iAmount.toFixed(2)}</span></br><span style="color:#5a6373;">Amount</span></div>`;
-								if (counterPanelElement.length)
+								if (Settings.userRole() === Enums.WordCounterUserRole.Lawyer)
 								{
-									counterPanelElement.html(`${charactersCounter}${wordsCounter}${sessionCounter}${amountCounter}`);
+									var iTimeSeconds = Settings.typingSpeedCPM() ? Math.floor((iTotalChar / Settings.typingSpeedCPM()) * 60) : 0;
+									var dTime = new Date(null);
+									dTime.setSeconds(iTimeSeconds);
+									var iAmount = (iTimeSeconds / 3600) * Settings.hourlyRate();
+									var counterPanel = `<div style="box-sizing:border-box;display:flex;width: 100%;padding: 0 12px;" class="counter-panel">${charactersCounter}${wordsCounter}${sessionCounter}${amountCounter}</div>`;
+									var charactersCounter = `<div style="box-sizing:border-box;width:25%;padding:15px;border:1px solid #cccccc;border-bottom-left-radius:5px;border-top-left-radius:5px;border-right:0;background-color:#f0f0f0;"><span style="font-weight:bold;font-size:16px">${iTotalChar}</span></br><span style="color:#5a6373;">Characters</span></div>`;
+									var wordsCounter = `<div style="box-sizing:border-box;width:25%;padding:15px;border:1px solid #cccccc;border-right:0;background-color:#f0f0f0;"><span style="font-weight:bold;font-size:16px">${iTotalWord}</span></br><span style="color:#5a6373;">Words</span></div>`;
+									var sessionCounter = `<div style="box-sizing:border-box;width:25%;padding:15px;border:1px solid #cccccc;border-right:0;background-color:#f0f0f0;"><span style="font-weight:bold;font-size:16px">${dTime.toISOString().substr(11, 8)}</span></br><span style="color:#5a6373;">Session Time</span></div>`;
+									var amountCounter = `<div style="box-sizing:border-box;width:25%;padding:15px;border:1px solid #cccccc;background-color:#f0f0f0;border-bottom-right-radius:5px;border-top-right-radius:5px;"><span style="font-weight:bold;font-size:16px">${getCurrencySymbol()}${iAmount.toFixed(2)}</span></br><span style="color:#5a6373;">Amount</span></div>`;
+									if (counterPanelElement.length)
+									{
+										counterPanelElement.html(`${charactersCounter}${wordsCounter}${sessionCounter}${amountCounter}`);
+									}
+									else
+									{
+										panelCenterElement.after(counterPanel);
+									}
 								}
-								else panelCenterElement.after(counterPanel);
 							}, this);
 						}
 
