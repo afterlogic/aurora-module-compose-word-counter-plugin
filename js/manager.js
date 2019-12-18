@@ -78,18 +78,33 @@ module.exports = function (oAppData) {
 			totalWord += text.length > 0 ? text.split(' ').length : 0;
 			return totalWord;
 		},
+		isIncomingMessage = function (oMessage) {
+			var sUserEmail = App.currentAccountEmail ? App.currentAccountEmail() : '';
+
+			return sUserEmail !== oMessage.oFrom.getFirstEmail();
+		},
 		getMessageValue = function (oMessage) {
 			var
 				regexpTotalWord = /X-ComposeWordCounter-TotalWord: ([0-9]+)/,
 				aTotalWordResult = regexpTotalWord.exec(oMessage.sourceHeaders()),
 				iTotalWord = aTotalWordResult && aTotalWordResult[1] ? Types.pInt(aTotalWordResult[1], 0) : 0,
-				iTimeSeconds = Settings.readingSpeedWPM() ? Math.floor((iTotalWord / Settings.readingSpeedWPM()) * 60) : 0,
+				regexpTotalChar = /X-ComposeWordCounter-TotalChar: ([0-9]+)/,
+				aTotalCharResult = regexpTotalChar.exec(oMessage.sourceHeaders()),
+				iTotalChar = aTotalCharResult && aTotalCharResult[1] ? Types.pInt(aTotalCharResult[1], 0) : 0,
+				bIncomingMessage = isIncomingMessage(oMessage),
+				iReadingSpeed = Settings.readingSpeedWPM() ? Settings.readingSpeedWPM() : 0,
+				iTypingSpeed = Settings.typingSpeedCPM() ? Settings.typingSpeedCPM() : 0,
+				iTimeMinutes = bIncomingMessage ? (iTotalWord / iReadingSpeed) : (iTotalChar / iTypingSpeed),
+				iTimeSeconds = Math.floor(iTimeMinutes * 60),
 				iValue = (iTimeSeconds / 3600) * Settings.hourlyRate()
 			;
 
 			return {
 				TotalWord: iTotalWord,
-				Value: iValue
+				TotalChar: iTotalChar,
+				Value: iValue,
+				TimeSeconds: iTimeSeconds,
+				IsIncomingMessage: bIncomingMessage
 			};
 		}
 	;
@@ -118,9 +133,11 @@ module.exports = function (oAppData) {
 									var oMessageValue = getMessageValue(this.currentMessage());
 									Popups.showPopup(AlertPopup, [
 										TextUtils.i18n('%MODULENAME%/LABEL_MESSAGE_VALUE', {
-											WORDS: oMessageValue.TotalWord,
+											MEASURE: oMessageValue.IsIncomingMessage ? oMessageValue.TotalWord : oMessageValue.TotalChar,
+											MEASURENAME: oMessageValue.IsIncomingMessage ? 'Words' : 'Characters',
 											VALUE: oMessageValue.Value.toFixed(2),
 											CURRENTWPM: Settings.readingSpeedWPM() ? Settings.readingSpeedWPM() : 0,
+											CURRENTCPM: Settings.typingSpeedCPM() ? Settings.typingSpeedCPM() : 0,
 											CURRENTHOURLYRATE: Settings.hourlyRate() ? Settings.hourlyRate() : 0,
 											CURRENCYSYMBOL: getCurrencySymbol()
 										})
