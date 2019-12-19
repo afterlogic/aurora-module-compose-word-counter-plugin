@@ -216,6 +216,8 @@ module.exports = function (oAppData) {
 							'X-ComposeWordCounter-TotalChar': iTotalChar,
 							'X-ComposeWordCounter-TotalWord': iTotalWord
 						};
+						iTotalChar = 0;
+						iTotalWord = 0;
 					}
 				});
 			}
