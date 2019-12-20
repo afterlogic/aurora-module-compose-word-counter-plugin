@@ -1,0 +1,42 @@
+<div class="popup" style="display: none;">
+	<div class="mask" data-bind="click: cancelPopup"></div>
+	<div class="popup_panel">
+		<span class="close" data-bind="click: cancelPopup"></span>
+
+		<div class="fields">
+			<div class="fieldset">
+				<div class="row">
+					<span class="label" data-bind="text: sLabel"></span>
+				</div>
+					<div class="row">
+						<table data-bind="visible : aOperations().length > 0">
+							<thead>
+								<tr>
+									<td>Create</td>
+									<td>Value</td>
+									<td>Sender</td>
+									<td>Subject</td>
+								</tr>
+							</thead>
+							<tbody data-bind="foreach: aOperations">
+								<tr>
+									<td data-bind="text: CreateDate"></td>
+									<td data-bind="text: Value.toFixed(2)"></td>
+									<td data-bind="text: Sender"></td>
+									<td data-bind="text: MessageSubject"></td>
+								</tr>
+							</tbody>
+						</table>
+						
+					</div>
+				<div class="row" data-bind="visible : aOperations().length === 0">
+					<span class="label" data-bind="i18n: {'key': '%MODULENAME%/ERROR_NO_ACTIVE_BILL'}"></span>
+				</div>
+			</div>
+			<div class="buttons">
+				<span class="button secondary_button" data-bind="i18n: {'key': 'COREWEBCLIENT/ACTION_CANCEL'}, click: cancelPopup"></span>
+			</div>
+		</div>
+	</div>
+</div>
+

@@ -6,10 +6,14 @@ var
 	$ = require('jquery'),
 	ko = require('knockout'),
 	App = require('%PathToCoreWebclientModule%/js/App.js'),
+	Ajax = require('%PathToCoreWebclientModule%/js/Ajax.js'),
 	TextUtils = require('%PathToCoreWebclientModule%/js/utils/Text.js'),
+	Screens = require('%PathToCoreWebclientModule%/js/Screens.js'),
 	Types = require('%PathToCoreWebclientModule%/js/utils/Types.js'),
 	Popups = require('%PathToCoreWebclientModule%/js/Popups.js'),
 	AlertPopup = require('%PathToCoreWebclientModule%/js/popups/AlertPopup.js'),
+	ShowActiveBillPopup = require('modules/%ModuleName%/js/popups/ShowActiveBillPopup.js'),
+	ModuleErrors = require('%PathToCoreWebclientModule%/js/ModuleErrors.js'),
 	Settings = require('modules/%ModuleName%/js/Settings.js')
 ;
 
@@ -153,18 +157,101 @@ module.exports = function (oAppData) {
 							'CssClass': 'add-value',
 							'Handler': function () {
 								if (this.currentMessage())
-								{
+								{								
 									var oMessageValue = getMessageValue(this.currentMessage());
 									if (oMessageValue.Value <= 0)
 									{
 										Popups.showPopup(AlertPopup, [TextUtils.i18n('%MODULENAME%/ERROR_MESSAGE_NO_VALUE')]);
 									}
-									//TODO: add oMessageValue.Value to client bill
+									else
+									{
+										Ajax.send(
+											'ComposeWordCounterPlugin',
+											'AddToBill', 
+											{
+												ClientEmail: oMessageValue.IsIncomingMessage ? this.currentMessage().oFrom.getFirstEmail() : this.currentMessage().oTo.getFirstEmail(),
+												TotalChar: oMessageValue.TotalChar,
+												TotalWord: oMessageValue.TotalWord,
+												TypingSpeedCPM: Settings.typingSpeedCPM() ? Settings.typingSpeedCPM() : 0,
+												ReadingSpeedWPM: Settings.readingSpeedWPM() ? Settings.readingSpeedWPM() : 0,
+												Value: oMessageValue.Value,
+												CurrencyId: Settings.currency(),
+												HourlyRate: Settings.hourlyRate() ? Settings.hourlyRate() : 0,
+												MessageId: this.currentMessage().messageId(),
+												MessageSubject: this.currentMessage().subject(),
+												MessageText: this.currentMessage().text(),
+												MessageDate: this.currentMessage().oDateModel.oMoment.format('Y-MM-DD HH:mm:ss'),
+												Sender: this.currentMessage().oFrom.getFirstEmail(),
+												IsIncoming: oMessageValue.IsIncomingMessage
+											},
+											function (oResponse) {
+												if (oResponse.Result)
+												{
+													Screens.showReport(TextUtils.i18n('%MODULENAME%/REPORT_ADD_TO_BILL_SUCCESS'));
+												}
+												else
+												{
+													var sMessage = ModuleErrors.getErrorMessage(oResponse);
+													if (sMessage)
+													{
+														Screens.showError(sMessage);
+													}
+													else
+													{
+														Screens.showError(TextUtils.i18n('%MODULENAME%/ERROR_INVALID_ADD_TO_BILL'));
+													}
+												}
+											},
+											this
+										);
+									}
 								}
 							}
 						});
 					});
 				}
+
+				App.subscribeEvent('MailWebclient::AddMoreSectionCommand', function (fAddMoreSectionCommand) {
+					fAddMoreSectionCommand({
+						'Text': TextUtils.i18n('%MODULENAME%/ACTION_VIEW_ACTIVE_BILL'),
+						'CssClass': 'view-bill',
+						'Handler': function () {
+							if (this.currentMessage())
+							{
+								var sClientEmail = isIncomingMessage(this.currentMessage()) ? this.currentMessage().oFrom.getFirstEmail() : this.currentMessage().oTo.getFirstEmail();
+								Ajax.send(
+									'ComposeWordCounterPlugin',
+									'GetOpenBillByClientEmail', 
+									{
+										ClientEmail: sClientEmail,
+									},
+									function (oResponse) {
+										if (oResponse.Result)
+										{
+											Popups.showPopup(ShowActiveBillPopup, [
+												oResponse.Result,
+												sClientEmail
+											]);
+										}
+										else
+										{
+											var sMessage = ModuleErrors.getErrorMessage(oResponse);
+											if (sMessage)
+											{
+												Screens.showError(sMessage);
+											}
+											else
+											{
+												Screens.showError(TextUtils.i18n('%MODULENAME%/ERROR_INVALID_GET_BILL'));
+											}
+										}
+									},
+									this
+								);
+							}
+						}
+					});
+				});
 
 				App.subscribeEvent('MailWebclient::ConstructView::after', function (oParams) {
 					if (!bInitialized && oParams.Name === 'CComposeView')
