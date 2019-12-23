@@ -107,6 +107,37 @@ class Module extends \Aurora\System\Module\AbstractModule
 		return false;
 	}
 
+	public function GetPerUserSettings($UserId)
+	{
+		\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::SuperAdmin);
+
+		$oUser = \Aurora\Modules\Core\Module::Decorator()->GetUserUnchecked($UserId);
+		if ($oUser)
+		{
+			return [
+				'UserRole' => $oUser->{self::GetName() . '::UserRole'}
+			];
+		}
+
+		return null;
+	}
+
+	public function UpdatePerUserSettings($UserId, $UserRole)
+	{
+		$bResult = false;
+		\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::SuperAdmin);
+
+		$oUser = \Aurora\Modules\Core\Module::Decorator()->GetUserUnchecked($UserId);
+
+		if ($oUser)
+		{
+			$oUser->{self::GetName() . '::UserRole'} = $UserRole;
+			$bResult = \Aurora\Modules\Core\Module::Decorator()->UpdateUserObject($oUser);
+		}
+
+		return $bResult;
+	}
+
 	public function AddToBill($UserId, $ClientEmail,
 		$TotalChar, $TotalWord, $TypingSpeedCPM, $ReadingSpeedWPM, $Value, $CurrencyId, $HourlyRate,
 		$MessageId, $MessageSubject, $MessageText, $MessageDate, $Sender, $IsIncoming
