@@ -12,6 +12,7 @@ var
 	Types = require('%PathToCoreWebclientModule%/js/utils/Types.js'),
 	Popups = require('%PathToCoreWebclientModule%/js/Popups.js'),
 	AlertPopup = require('%PathToCoreWebclientModule%/js/popups/AlertPopup.js'),
+	ConfirmPopup = require('%PathToCoreWebclientModule%/js/popups/ConfirmPopup.js'),
 	ShowActiveBillPopup = require('modules/%ModuleName%/js/popups/ShowActiveBillPopup.js'),
 	ModuleErrors = require('%PathToCoreWebclientModule%/js/ModuleErrors.js'),
 	Settings = require('modules/%ModuleName%/js/Settings.js')
@@ -144,7 +145,9 @@ module.exports = function (oAppData) {
 											CURRENTCPM: Settings.typingSpeedCPM() ? Settings.typingSpeedCPM() : 0,
 											CURRENTHOURLYRATE: Settings.hourlyRate() ? Settings.hourlyRate() : 0,
 											CURRENCYSYMBOL: getCurrencySymbol()
-										})
+										}),
+										null,
+										TextUtils.i18n('%MODULENAME%/POPUP_TITLE_MESSAGE_VALUE')
 									]);
 								}
 							}
@@ -157,7 +160,7 @@ module.exports = function (oAppData) {
 							'CssClass': 'add-value',
 							'Handler': function () {
 								if (this.currentMessage())
-								{								
+								{
 									var oMessageValue = getMessageValue(this.currentMessage());
 									if (oMessageValue.Value <= 0)
 									{
@@ -167,7 +170,7 @@ module.exports = function (oAppData) {
 									{
 										Ajax.send(
 											'ComposeWordCounterPlugin',
-											'AddToBill', 
+											'AddToBill',
 											{
 												ClientEmail: oMessageValue.IsIncomingMessage ? this.currentMessage().oFrom.getFirstEmail() : this.currentMessage().oTo.getFirstEmail(),
 												TotalChar: oMessageValue.TotalChar,
@@ -209,49 +212,100 @@ module.exports = function (oAppData) {
 							}
 						});
 					});
-				}
 
-				App.subscribeEvent('MailWebclient::AddMoreSectionCommand', function (fAddMoreSectionCommand) {
-					fAddMoreSectionCommand({
-						'Text': TextUtils.i18n('%MODULENAME%/ACTION_VIEW_ACTIVE_BILL'),
-						'CssClass': 'view-bill',
-						'Handler': function () {
-							if (this.currentMessage())
-							{
-								var sClientEmail = isIncomingMessage(this.currentMessage()) ? this.currentMessage().oFrom.getFirstEmail() : this.currentMessage().oTo.getFirstEmail();
-								Ajax.send(
-									'ComposeWordCounterPlugin',
-									'GetOpenBillByClientEmail', 
-									{
-										ClientEmail: sClientEmail,
-									},
-									function (oResponse) {
-										if (oResponse.Result)
+					App.subscribeEvent('MailWebclient::AddMoreSectionCommand', function (fAddMoreSectionCommand) {
+						fAddMoreSectionCommand({
+							'Text': TextUtils.i18n('%MODULENAME%/ACTION_VIEW_ACTIVE_BILL'),
+							'CssClass': 'view-bill',
+							'Handler': function () {
+								if (this.currentMessage())
+								{
+									var sClientEmail = isIncomingMessage(this.currentMessage()) ? this.currentMessage().oFrom.getFirstEmail() : this.currentMessage().oTo.getFirstEmail();
+									Ajax.send(
+										'ComposeWordCounterPlugin',
+										'GetOpenBillByClientEmail', 
 										{
-											Popups.showPopup(ShowActiveBillPopup, [
-												oResponse.Result,
-												sClientEmail
-											]);
-										}
-										else
-										{
-											var sMessage = ModuleErrors.getErrorMessage(oResponse);
-											if (sMessage)
+											ClientEmail: sClientEmail,
+										},
+										function (oResponse) {
+											if (oResponse.Result)
 											{
-												Screens.showError(sMessage);
+												Popups.showPopup(ShowActiveBillPopup, [
+													oResponse.Result,
+													sClientEmail
+												]);
 											}
 											else
 											{
-												Screens.showError(TextUtils.i18n('%MODULENAME%/ERROR_INVALID_GET_BILL'));
+												var sMessage = ModuleErrors.getErrorMessage(oResponse);
+												if (sMessage)
+												{
+													Screens.showError(sMessage);
+												}
+												else
+												{
+													Screens.showError(TextUtils.i18n('%MODULENAME%/ERROR_INVALID_GET_BILL'));
+												}
 											}
-										}
-									},
-									this
-								);
+										},
+										this
+									);
+								}
 							}
-						}
+						});
 					});
-				});
+
+					App.subscribeEvent('MailWebclient::AddMoreSectionCommand', function (fAddMoreSectionCommand) {
+						fAddMoreSectionCommand({
+							'Text': TextUtils.i18n('%MODULENAME%/ACTION_CLEAR_ACTIVE_BILL'),
+							'CssClass': 'clear-bill',
+							'Handler': function () {
+								if (this.currentMessage())
+								{
+									var oMessageValue = getMessageValue(this.currentMessage());
+									var sClientEmail = oMessageValue.IsIncomingMessage ? this.currentMessage().oFrom.getFirstEmail() : this.currentMessage().oTo.getFirstEmail();
+									Popups.showPopup(ConfirmPopup, [
+										'Are you sure you want to clear current bill?',
+										function(bDoClear) {
+											if (bDoClear) {
+												Ajax.send(
+													'ComposeWordCounterPlugin',
+													'ClearBill',
+													{
+														ClientEmail: sClientEmail
+													},
+													function (oResponse) {
+														if (oResponse.Result)
+														{
+															Screens.showReport(TextUtils.i18n('The active bill was cleared successfully'));
+														}
+														else
+														{
+															var sMessage = ModuleErrors.getErrorMessage(oResponse);
+															if (sMessage)
+															{
+																Screens.showError(sMessage);
+															}
+															else
+															{
+																Screens.showError(TextUtils.i18n("The bill wasn't cleared"));
+															}
+														}
+													},
+													this
+												);
+											}
+
+										},
+										TextUtils.i18n('The bill clearing confirmation'),
+										'Clear'
+									]);
+								}
+							}
+						});
+					});
+				}
+
 
 				App.subscribeEvent('MailWebclient::ConstructView::after', function (oParams) {
 					if (!bInitialized && oParams.Name === 'CComposeView')

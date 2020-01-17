@@ -5,8 +5,8 @@
 		<span class="popup_heading" data-bind="text: sLabel">Добавить новый аккаунт</span>
 		<div class="fields">
 			<div class="fieldset">
-				<div class="row">
-					<table data-bind="visible : aOperations().length > 0">
+				<div class="row" data-bind="visible : aOperations().length > 0">
+					<table>
 						<thead>
 							<tr>
 								<td>Create</td>
@@ -27,7 +27,7 @@
 						</tbody>
 					</table>
 				</div>
-				<div class="row" style="text-align: right;">
+				<div class="row" style="text-align: right;" data-bind="visible : aOperations().length > 0">
 					<span class="label" style="font-weight: bold;font-size: 12pt;">Summary:</span>
 					<span class="value" data-bind="text: totalCost" style="font-size: 16pt;"></span>
 				</div>

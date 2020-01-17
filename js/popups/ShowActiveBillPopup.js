@@ -43,7 +43,7 @@ ShowActiveBillPopup.prototype.onOpen = function (aOperations, sClientEmail)
 
 	this.totalCost(currency + totalCost.toFixed(2));
 
-	this.sLabel(TextUtils.i18n('%MODULENAME%/LABEL_ACTIVE_BILL_POPUP', {'EMAIL': sClientEmail}));
+	this.sLabel(TextUtils.i18n('%MODULENAME%/POPUP_TITLE_ACTIVE_BILL', {'EMAIL': sClientEmail}));
 };
 
 module.exports = new ShowActiveBillPopup();

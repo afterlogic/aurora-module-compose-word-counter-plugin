@@ -22,6 +22,7 @@ class ErrorCodes
 	const BillUpdateFailed				= 1006;
 	const OperationAlreadyInOpenBill	= 1007;
 	const OperationAlreadyInClosedBill	= 1008;
+	const NoBillsOpened					= 1009;
 
 	/**
 	 * @var array
@@ -34,6 +35,7 @@ class ErrorCodes
 		'BillCreateFailed'				=> self::BillCreateFailed,
 		'BillUpdateFailed'				=> self::BillUpdateFailed,
 		'OperationAlreadyInOpenBill'	=> self::OperationAlreadyInOpenBill,
-		'OperationAlreadyInClosedBill'	=> self::OperationAlreadyInClosedBill
+		'OperationAlreadyInClosedBill'	=> self::OperationAlreadyInClosedBill,
+		'NoBillsOpened'					=> self::NoBillsOpened
 	];
 }

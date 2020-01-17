@@ -223,6 +223,29 @@ class Module extends \Aurora\System\Module\AbstractModule
 		return $aResult;
 	}
 
+	public function ClearBill($UserId, $ClientEmail)
+	{
+		\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::NormalUser);
+
+		$aResult = [];
+		$oOwnerUser = \Aurora\System\Api::getAuthenticatedUser();
+
+		// if($ClientEmail === $oOwnerUser->PublicId)
+		// {
+		// 	throw new \Aurora\System\Exceptions\BaseException(Enums\ErrorCodes::ClientAndOwnerSamePerson);
+		// }
+		$oLastBill = $this->getManager('Bills')->getOpenedBillByOwnerAndClient($oOwnerUser->UUID, $ClientEmail);
+
+		if ($oLastBill) {
+			// $aResult[] = $oLastBill->ClientUserEmail;
+			$aResult = $this->getManager('Bills')->deleteBill($oLastBill);
+		} else {
+			throw new \Aurora\System\Exceptions\BaseException(Enums\ErrorCodes::NoBillsOpened);
+		}
+
+		return $aResult;
+	}
+
 	public function GetOpenBillByClientEmail($ClientEmail)
 	{
 		\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::NormalUser);
