@@ -42,7 +42,8 @@ module.exports = function (oAppData) {
 			{
 				return str;
 			}
-			str = str.replace(/\r?\n/g, ' ')
+      str = str
+        .replace(/\r?\n/g, ' ')
 				.replace(/&nbsp;/g,' ') 
 				.replace(/<div data-anchor="signature".*?<\/div>/g, '')
 				.replace(/<div data-anchor="reply-title".*?<\/div>/g, '')
@@ -68,15 +69,37 @@ module.exports = function (oAppData) {
 			return str;
 		},
 		totalChar = function (chars) {
-			var totalChar = 0;
-			chars = purify_string(chars);
-			chars = chars.replace(/\s/ig, '');
+      var totalChar = 0;
+			// chars = purify_string(chars);
+      chars = chars
+// 			    .replace(/\r?\n/g, ' ')
+				.replace(/&nbsp;/g,' ')
+				.replace(/<div data-anchor="signature".*?<\/div>/g, '')
+				.replace(/<div data-anchor="reply-title".*?<\/div>/g, '')
+				.replace(/<blockquote.*?<\/blockquote>/g, '')
+// 				.replace(/([^>]{1})<div>/gi, '$1\n')
+// 				.replace(/<style[^>]*>[^<]*<\/style>/gi, '\n')
+// 				.replace(/<br *\/{0,1}>/gi, '\n')
+// 				.replace(/<\/b*\/{0,1}>/gi, '\n')
+// 				.replace(/<\/i*\/{0,1}>/gi, '\n')
+// 				.replace(/<\/u*\/{0,1}>/gi, '\n')
+// 				.replace(/<\/strike*\/{0,1}>/gi, '\n')
+// 				.replace(/<\/font*\/{0,1}>/gi, '\n')
+// 				.replace(/<\/p>/gi, '\n')
+// 				.replace(/<\/div>/gi, '\n')
+				.replace(/<[^>]*>/g, '')
+				.replace(/&nbsp;/g, ' ')
+				.replace(/&lt;/g, '<')
+				.replace(/&gt;/g, '>')
+				.replace(/&amp;/g, '&')
+				.replace(/&quot;/g, '"')
+			  .replace(/(<([^>]+)>)/ig,'');
+			//chars = chars.replace(/\s/ig, '');
 			totalChar = chars.length > 0 ? chars.length : 0;
 			return totalChar;
 		},
 		wordCounter = function (text) {
 			var totalWord = 0;
-			var j;
 			text = purify_string(text);
 			text = text.replace(/\s+/ig, ' ');
 			text = text.trim();
@@ -326,21 +349,24 @@ module.exports = function (oAppData) {
 										dTime = new Date(null)
 									;
 									dTime.setSeconds(iTimeSeconds);
+									
 									var
 										iAmount = (iTimeSeconds / 3600) * Settings.hourlyRate(),
-										counterPanel = `<div style="box-sizing:border-box;display:flex;width: 100%;padding: 0 12px;" class="counter-panel">${charactersCounter}${wordsCounter}${sessionCounter}${amountCounter}</div>`,
-										charactersCounter = `<div style="box-sizing:border-box;width:25%;padding:15px;border:1px solid #cccccc;border-bottom-left-radius:5px;border-top-left-radius:5px;border-right:0;background-color:#f0f0f0;"><span style="font-weight:bold;font-size:16px">${iTotalChar}</span></br><span style="color:#5a6373;">Characters</span></div>`,
-										wordsCounter = `<div style="box-sizing:border-box;width:25%;padding:15px;border:1px solid #cccccc;border-right:0;background-color:#f0f0f0;"><span style="font-weight:bold;font-size:16px">${iTotalWord}</span></br><span style="color:#5a6373;">Words</span></div>`,
-										sessionCounter = `<div style="box-sizing:border-box;width:25%;padding:15px;border:1px solid #cccccc;border-right:0;background-color:#f0f0f0;"><span style="font-weight:bold;font-size:16px">${dTime.toISOString().substr(11, 8)}</span></br><span style="color:#5a6373;">Session Time</span></div>`,
-										amountCounter = `<div style="box-sizing:border-box;width:25%;padding:15px;border:1px solid #cccccc;background-color:#f0f0f0;border-bottom-right-radius:5px;border-top-right-radius:5px;"><span style="font-weight:bold;font-size:16px">${getCurrencySymbol()}${iAmount.toFixed(2)}</span></br><span style="color:#5a6373;">Amount</span></div>`
+										counterPanel = `<div style="box-sizing:border-box;display:flex;width: 100%;padding: 0 12px;" class="counter-panel">${charactersCounter}${sessionCounter}${amountCounter}</div>`,
+										charactersCounter = `<div style="box-sizing:border-box;flex-grow:1;padding:15px;border:1px solid #cccccc;border-bottom-left-radius:5px;border-top-left-radius:5px;border-right:0;background-color:#f0f0f0;"><span style="font-weight:bold;font-size:16px">${iTotalChar}</span></br><span style="color:#5a6373;">Characters</span></div>`,
+										wordsCounter = `<div style="box-sizing:border-box;flex-grow:1;padding:15px;border:1px solid #cccccc;border-right:0;background-color:#f0f0f0;"><span style="font-weight:bold;font-size:16px">${iTotalWord}</span></br><span style="color:#5a6373;">Words</span></div>`,
+										sessionCounter = `<div style="box-sizing:border-box;flex-grow:1;padding:15px;border:1px solid #cccccc;border-right:0;background-color:#f0f0f0;"><span style="font-weight:bold;font-size:16px">${dTime.toISOString().substr(11, 8)}</span></br><span style="color:#5a6373;">Session Time</span></div>`,
+										amountCounter = `<div style="box-sizing:border-box;flex-grow:1;padding:15px;border:1px solid #cccccc;background-color:#f0f0f0;border-bottom-right-radius:5px;border-top-right-radius:5px;"><span style="font-weight:bold;font-size:16px">${getCurrencySymbol()}${iAmount.toFixed(2)}</span></br><span style="color:#5a6373;">Amount</span></div>`
 									;
-									if (counterPanelElement.length)
-									{
-										counterPanelElement.html(`${charactersCounter}${wordsCounter}${sessionCounter}${amountCounter}`);
-									}
-									else
+									if (!counterPanelElement.length)
 									{
 										panelCenterElement.after(counterPanel);
+										counterPanelElement = $('.message_panel').find('.counter-panel');
+									}
+									
+									if (counterPanelElement.length)
+									{
+										counterPanelElement.html(`${charactersCounter}${sessionCounter}${amountCounter}`);
 									}
 								}
 							}, this);
