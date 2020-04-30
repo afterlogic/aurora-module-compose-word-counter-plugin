@@ -25,6 +25,13 @@ class Module extends \Aurora\System\Module\AbstractModule
 
 	public function init()
 	{
+		\Aurora\System\Router::getInstance()->registerArray(
+			self::GetName(),
+			[
+				'sso-send' => [$this, 'EntrySsoSend'],
+			]
+		);
+		
 		$this->aErrors = [
 			Enums\ErrorCodes::ClientAndOwnerSamePerson		=> $this->i18N('ERROR_SAME_PERSON'),
 			Enums\ErrorCodes::OperationCreateFailed			=> $this->i18N('ERROR_OPERATION_CREATE_FAILED'),
@@ -48,6 +55,50 @@ class Module extends \Aurora\System\Module\AbstractModule
 		);
 	}
 
+	/**
+	 * @ignore
+	 */
+	public function EntrySsoSend()
+	{
+		try
+		{
+			$sHash = $this->oHttp->GetRequest('hash');
+			if (!empty($sHash))
+			{
+				$sData = \Aurora\System\Api::Cacher()->get('SSO:'.$sHash, true);
+				$aData = \Aurora\System\Api::DecodeKeyValues($sData);
+				if (isset($aData['Password'], $aData['Email']))
+				{
+					$aResult = \Aurora\Modules\Core\Module::Decorator()->Login($aData['Email'], $aData['Password']);
+					if (is_array($aResult) && isset($aResult['AuthToken']))
+					{
+						$iAuthTokenCookieExpireTime = (int) \Aurora\Modules\Core\Module::getInstance()->getConfig('AuthTokenCookieExpireTime', 30);
+						@\setcookie(
+							\Aurora\System\Application::AUTH_TOKEN_KEY,
+							$aResult['AuthToken'],
+							\strtotime('+' . $iAuthTokenCookieExpireTime . ' days'),
+							\Aurora\System\Api::getCookiePath(), null, \Aurora\System\Api::getCookieSecure()
+						);
+					}
+				}
+			}
+			else
+			{
+				\Aurora\Modules\Core\Module::Decorator()->Logout();
+			}
+		}
+		catch (\Exception $oExc)
+		{
+			\Aurora\System\Api::LogException($oExc);
+		}
+
+		$sTo = $this->oHttp->GetRequest('to');
+		$sSubject = $this->oHttp->GetRequest('subject');
+		$sText = $this->oHttp->GetRequest('text');
+
+		\Aurora\System\Api::Location('./#mail/compose/to/' . rawurlencode('mailto:' . $sTo . '?subject=' . $sSubject . '&body=' . $sText));
+	}
+	
 	public function getManager($sManager)
 	{
 		if ($this->aManagers[$sManager] === null)
