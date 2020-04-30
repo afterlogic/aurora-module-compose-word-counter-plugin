@@ -314,4 +314,64 @@ class Module extends \Aurora\System\Module\AbstractModule
 
 		return $aResult;
 	}
+	
+	public function SendMessage($Hash, $To, $Subject, $Text)
+	{
+		$mResult = false;
+		
+		if (!empty($Hash))
+		{
+			$sData = \Aurora\System\Api::Cacher()->get('SSO:'.$Hash, true);
+			$aData = \Aurora\System\Api::DecodeKeyValues($sData);
+			if (isset($aData['Password'], $aData['Email']))
+			{
+				$aResult = \Aurora\Modules\Core\Module::Decorator()->Login($aData['Email'], $aData['Password']);
+				if (is_array($aResult) && isset($aResult['AuthToken']))
+				{
+					$oUser = \Aurora\System\Api::getAuthenticatedUser();
+					$aAccounts = \Aurora\Modules\Mail\Module::Decorator()->GetAccounts($oUser->EntityId);
+					$oDefaultAccount = null;
+					if (is_array($aAccounts))
+					{
+						foreach ($aAccounts as $oAccount)
+						{
+							if ($oAccount->Email === $oUser->PublicId)
+							{
+								$oDefaultAccount = $oAccount;
+							}
+						}
+					}
+					if ($oDefaultAccount)
+					{
+						$AccountID = $oDefaultAccount->EntityId;
+						$Fetcher = null;
+						$Alias = null;
+						$IdentityID = 0;
+						$DraftInfo = [];
+						$DraftUid = "";
+						$Cc = "";
+						$Bcc = "";
+						$IsHtml = true;
+						$Importance = \MailSo\Mime\Enumerations\MessagePriority::NORMAL;
+						$SendReadingConfirmation = false;
+						$Attachments = array();
+						$InReplyTo = "";
+						$References = "";
+						$Sensitivity = \MailSo\Mime\Enumerations\Sensitivity::NOTHING;
+						$SentFolder = "";
+						$DraftFolder = "";
+						$ConfirmFolder = "";
+						$ConfirmUid = "";
+						$CustomHeaders = [];
+						$mResult = \Aurora\Modules\Mail\Module::Decorator()->SendMessage($AccountID, $Fetcher, $Alias, $IdentityID,
+							$DraftInfo, $DraftUid, $To, $Cc, $Bcc, $Subject, $Text, $IsHtml, $Importance,
+							$SendReadingConfirmation, $Attachments, $InReplyTo, $References, $Sensitivity, $SentFolder,
+							$DraftFolder, $ConfirmFolder, $ConfirmUid, $CustomHeaders);
+					}
+				}
+			}
+		}
+		
+		return $mResult;
+	}
 }
