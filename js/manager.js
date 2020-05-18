@@ -23,9 +23,9 @@ module.exports = function (oAppData) {
 		bInitialized = false,
 		iTotalChar = 0,
 		iTotalWord = 0,
-		getCurrencySymbol = function () {
+		getCurrencySymbol = function (iCurrencyId) {
 			var symbol = '';
-			switch (Settings.currency())
+			switch (iCurrencyId)
 			{
 				case Enums.Currency.EUR:
 					symbol = '€';
@@ -37,7 +37,7 @@ module.exports = function (oAppData) {
 
 			return symbol;
 		},
-		purify_string = function(str='') {
+		purify_string = function(str) {
 			if(str.length<1)
 			{
 				return str;
@@ -116,30 +116,41 @@ module.exports = function (oAppData) {
 
 			return sUserEmail !== oMessage.oFrom.getFirstEmail();
 		},
+		getHeaderIntValue = function (sHeaderName, sHeaders, iDefault) {
+			var
+				reg = new RegExp(sHeaderName + ': ([0-9]+)'),
+				aResult = reg.exec(sHeaders),
+				iHeader = Types.pInt(aResult && aResult[1], iDefault)
+			;
+			return iHeader;
+		},
 		getMessageValue = function (oMessage) {
 			var
-				regexpTotalWord = /X-ComposeWordCounter-TotalWord: ([0-9]+)/,
-				aTotalWordResult = regexpTotalWord.exec(oMessage.sourceHeaders()),
-				iTotalWord = aTotalWordResult && aTotalWordResult[1] ? Types.pInt(aTotalWordResult[1], 0) : 0,
-				regexpTotalChar = /X-ComposeWordCounter-TotalChar: ([0-9]+)/,
-				aTotalCharResult = regexpTotalChar.exec(oMessage.sourceHeaders()),
-				iTotalChar = aTotalCharResult && aTotalCharResult[1] ? Types.pInt(aTotalCharResult[1], 0) : 0,
+				iTotalWord = getHeaderIntValue('X-ComposeWordCounter-TotalWord', oMessage.sourceHeaders(), 0),
+				iTotalChar = getHeaderIntValue('X-ComposeWordCounter-TotalChar', oMessage.sourceHeaders(), 0),
+				iReadingSpeed = getHeaderIntValue('X-ComposeWordCounter-ReadingSpeed', oMessage.sourceHeaders(), Settings.readingSpeedWPM()),
+				iTypingSpeed = getHeaderIntValue('X-ComposeWordCounter-TypingSpeed', oMessage.sourceHeaders(), Settings.typingSpeedCPM()),
+				iCurrency = getHeaderIntValue('X-ComposeWordCounter-Currency', oMessage.sourceHeaders(), Settings.currency()),
+				iHourlyRate = getHeaderIntValue('X-ComposeWordCounter-HourlyRate', oMessage.sourceHeaders(), Settings.hourlyRate()),
 				bIncomingMessage = isIncomingMessage(oMessage),
-				iReadingSpeed = Settings.readingSpeedWPM() ? Settings.readingSpeedWPM() : 0,
-				iTypingSpeed = Settings.typingSpeedCPM() ? Settings.typingSpeedCPM() : 0,
 				iTimeMinutes = bIncomingMessage ? (iTotalWord / iReadingSpeed) : (iTotalChar / iTypingSpeed),
 				iTimeSeconds = Math.floor(iTimeMinutes * 60),
-				iValue = (iTimeSeconds / 3600) * Settings.hourlyRate()
+				iValue = (iTimeSeconds / 3600) * iHourlyRate
 			;
-
+			
 			return {
+				ReadingSpeed: iReadingSpeed,
+				TypingSpeed: iTypingSpeed,
+				Currency: iCurrency,
+				HourlyRate: iHourlyRate,
 				TotalWord: iTotalWord,
 				TotalChar: iTotalChar,
 				Value: iValue,
 				TimeSeconds: iTimeSeconds,
 				IsIncomingMessage: bIncomingMessage
 			};
-		}
+		},
+		HeaderItemView = null
 	;
 
 	Settings.init(oAppData);
@@ -147,14 +158,48 @@ module.exports = function (oAppData) {
 	if (App.isUserNormalOrTenant())
 	{
 		return {
+			sdf: function () {
+				
+			},
+			getScreens: function () {
+				var oScreens = {};
+				if (App.isMobile())
+				{
+					oScreens[Settings.HashModuleName + 'settings'] = function () {
+						return require('modules/%ModuleName%/js/views/MobileSettingsView.js');
+					};
+				}
+				return oScreens;
+			},
+			getHeaderItem: function () {
+				if (App.isMobile())
+				{
+					if (HeaderItemView === null)
+					{
+						var
+							TextUtils = require('%PathToCoreWebclientModule%/js/utils/Text.js'),
+							CHeaderItemView = require('%PathToCoreWebclientModule%/js/views/CHeaderItemView.js')
+						;
+						HeaderItemView = new CHeaderItemView(TextUtils.i18n('%MODULENAME%/HEADING_SETTINGS_TAB_MOBILE'));
+					}
+					return {
+						item: HeaderItemView,
+						name: Settings.HashModuleName + 'settings'
+					};
+				}
+				return null;
+			},
 			start: function (ModulesManager) {
 				if (Settings.userRole() === Enums.WordCounterUserRole.Lawyer)
 				{
-					ModulesManager.run('SettingsWebclient', 'registerSettingsTab', [
-						function () { return require('modules/%ModuleName%/js/views/ComposeWordCounterSettingsFormView.js'); },
-						Settings.HashModuleName,
-						TextUtils.i18n('%MODULENAME%/LABEL_SETTINGS_TAB')
-					]);
+					if (!App.isMobile())
+					{
+						ModulesManager.run('SettingsWebclient', 'registerSettingsTab', [
+							function () { return require('modules/%ModuleName%/js/views/ComposeWordCounterSettingsFormView.js'); },
+							Settings.HashModuleName,
+							TextUtils.i18n('%MODULENAME%/LABEL_SETTINGS_TAB')
+						]);
+					}
 
 					App.subscribeEvent('MailWebclient::AddMoreSectionCommand', function (fAddMoreSectionCommand) {
 						fAddMoreSectionCommand({
@@ -169,10 +214,10 @@ module.exports = function (oAppData) {
 											MEASURE: oMessageValue.IsIncomingMessage ? oMessageValue.TotalWord : oMessageValue.TotalChar,
 											MEASURENAME: oMessageValue.IsIncomingMessage ? 'Words' : 'Characters',
 											VALUE: oMessageValue.Value.toFixed(2),
-											CURRENTWPM: Settings.readingSpeedWPM() ? Settings.readingSpeedWPM() : 0,
-											CURRENTCPM: Settings.typingSpeedCPM() ? Settings.typingSpeedCPM() : 0,
-											CURRENTHOURLYRATE: Settings.hourlyRate() ? Settings.hourlyRate() : 0,
-											CURRENCYSYMBOL: getCurrencySymbol()
+											CURRENTWPM: oMessageValue.ReadingSpeed,
+											CURRENTCPM: oMessageValue.TypingSpeed,
+											CURRENTHOURLYRATE: oMessageValue.HourlyRate,
+											CURRENCYSYMBOL: getCurrencySymbol(oMessageValue.Currency)
 										}),
 										null,
 										TextUtils.i18n('%MODULENAME%/POPUP_TITLE_MESSAGE_VALUE')
@@ -203,11 +248,11 @@ module.exports = function (oAppData) {
 												ClientEmail: oMessageValue.IsIncomingMessage ? this.currentMessage().oFrom.getFirstEmail() : this.currentMessage().oTo.getFirstEmail(),
 												TotalChar: oMessageValue.TotalChar,
 												TotalWord: oMessageValue.TotalWord,
-												TypingSpeedCPM: Settings.typingSpeedCPM() ? Settings.typingSpeedCPM() : 0,
-												ReadingSpeedWPM: Settings.readingSpeedWPM() ? Settings.readingSpeedWPM() : 0,
+												TypingSpeedCPM: oMessageValue.TypingSpeed,
+												ReadingSpeedWPM: oMessageValue.ReadingSpeed,
 												Value: oMessageValue.Value,
-												CurrencyId: Settings.currency(),
-												HourlyRate: Settings.hourlyRate() ? Settings.hourlyRate() : 0,
+												CurrencyId: oMessageValue.Currency,
+												HourlyRate: oMessageValue.HourlyRate,
 												MessageId: this.currentMessage().messageId(),
 												MessageSubject: this.currentMessage().subject(),
 												MessageText: this.currentMessage().text(),
@@ -293,7 +338,7 @@ module.exports = function (oAppData) {
 									var oMessageValue = getMessageValue(this.currentMessage());
 									var sClientEmail = oMessageValue.IsIncomingMessage ? this.currentMessage().oFrom.getFirstEmail() : this.currentMessage().oTo.getFirstEmail();
 									Popups.showPopup(ConfirmPopup, [
-										'Are you sure you want to clear current bill?',
+										TextUtils.i18n('Are you sure you want to clear current bill?'),
 										function(bDoClear) {
 											if (bDoClear) {
 												Ajax.send(
@@ -342,6 +387,15 @@ module.exports = function (oAppData) {
 							&& ko.isSubscribable(oParams.View.oHtmlEditor.actualTextСhanged)
 						)
 					{
+						if (App.isMobile() && ko.isSubscribable(oParams.View.shown))
+						{
+							oParams.View.shown.subscribe(function () {
+								if (!oParams.View.shown())
+								{
+									$('.compose-screen').find('.counter-panel').remove();
+								}
+							})
+						}
 						oParams.View.oHtmlEditor.actualTextСhanged.subscribe(function() {
 							var sHtml = getHtmlWithoutUncountableParts(oParams.View.oHtmlEditor.getEditableArea());
 							iTotalChar = getTotalCharsCount(sHtml);
@@ -363,7 +417,7 @@ module.exports = function (oAppData) {
 									charactersCounter = `<div style="box-sizing:border-box;flex-grow:1;padding:2px 5px;border:1px solid #cccccc;border-bottom-left-radius:5px;border-top-left-radius:5px;border-right:0;background-color:#f0f0f0;"><span style="font-weight:bold;font-size:16px">${iTotalChar}</span></br><span style="color:#5a6373;">Characters</span></div>`,
 									wordsCounter = `<div style="box-sizing:border-box;flex-grow:1;padding:2px 5px;border:1px solid #cccccc;border-right:0;background-color:#f0f0f0;"><span style="font-weight:bold;font-size:16px">${iTotalWord}</span></br><span style="color:#5a6373;">Words</span></div>`,
 									sessionCounter = `<div style="box-sizing:border-box;flex-grow:1;padding:2px 5px;border:1px solid #cccccc;border-right:0;background-color:#f0f0f0;"><span style="font-weight:bold;font-size:16px">${dTime.toISOString().substr(11, 8)}</span></br><span style="color:#5a6373;">Session Time</span></div>`,
-									amountCounter = `<div style="box-sizing:border-box;flex-grow:1;padding:2px 5px;border:1px solid #cccccc;background-color:#f0f0f0;border-bottom-right-radius:5px;border-top-right-radius:5px;"><span style="font-weight:bold;font-size:16px">${getCurrencySymbol()}${iAmount.toFixed(2)}</span></br><span style="color:#5a6373;">Amount</span></div>`
+									amountCounter = `<div style="box-sizing:border-box;flex-grow:1;padding:2px 5px;border:1px solid #cccccc;background-color:#f0f0f0;border-bottom-right-radius:5px;border-top-right-radius:5px;"><span style="font-weight:bold;font-size:16px">${getCurrencySymbol(Settings.currency())}${iAmount.toFixed(2)}</span></br><span style="color:#5a6373;">Amount</span></div>`
 								;
 								if (!counterPanelElement.length)
 								{
@@ -384,7 +438,7 @@ module.exports = function (oAppData) {
 									charactersCounter = `<div style="box-sizing:border-box;flex-grow:1;padding:15px;border:1px solid #cccccc;border-bottom-left-radius:5px;border-top-left-radius:5px;border-right:0;background-color:#f0f0f0;"><span style="font-weight:bold;font-size:16px">${iTotalChar}</span></br><span style="color:#5a6373;">Characters</span></div>`,
 									wordsCounter = `<div style="box-sizing:border-box;flex-grow:1;padding:15px;border:1px solid #cccccc;border-right:0;background-color:#f0f0f0;"><span style="font-weight:bold;font-size:16px">${iTotalWord}</span></br><span style="color:#5a6373;">Words</span></div>`,
 									sessionCounter = `<div style="box-sizing:border-box;flex-grow:1;padding:15px;border:1px solid #cccccc;border-right:0;background-color:#f0f0f0;"><span style="font-weight:bold;font-size:16px">${dTime.toISOString().substr(11, 8)}</span></br><span style="color:#5a6373;">Session Time</span></div>`,
-									amountCounter = `<div style="box-sizing:border-box;flex-grow:1;padding:15px;border:1px solid #cccccc;background-color:#f0f0f0;border-bottom-right-radius:5px;border-top-right-radius:5px;"><span style="font-weight:bold;font-size:16px">${getCurrencySymbol()}${iAmount.toFixed(2)}</span></br><span style="color:#5a6373;">Amount</span></div>`
+									amountCounter = `<div style="box-sizing:border-box;flex-grow:1;padding:15px;border:1px solid #cccccc;background-color:#f0f0f0;border-bottom-right-radius:5px;border-top-right-radius:5px;"><span style="font-weight:bold;font-size:16px">${getCurrencySymbol(Settings.currency())}${iAmount.toFixed(2)}</span></br><span style="color:#5a6373;">Amount</span></div>`
 								;
 								if (!counterPanelElement.length)
 								{
@@ -406,6 +460,11 @@ module.exports = function (oAppData) {
 					if (oParams.Module === 'Mail' && oParams.Method === 'SendMessage' && oParams.Parameters)
 					{
 						oParams.Parameters['CustomHeaders'] = {
+							'X-ComposeWordCounter-SenderClient': App.isMobile ? 'mobile' : 'desktop',
+							'X-ComposeWordCounter-ReadingSpeed': Settings.readingSpeedWPM(),
+							'X-ComposeWordCounter-TypingSpeed': Settings.typingSpeedCPM(),
+							'X-ComposeWordCounter-Currency': Settings.currency(),
+							'X-ComposeWordCounter-HourlyRate': Settings.hourlyRate(),
 							'X-ComposeWordCounter-TotalChar': iTotalChar,
 							'X-ComposeWordCounter-TotalWord': iTotalWord
 						};

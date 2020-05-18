@@ -46,11 +46,15 @@ class Module extends \Aurora\System\Module\AbstractModule
 		\Aurora\Modules\Core\Classes\User::extend(
 			self::GetName(),
 			[
-				'TypingSpeedCPM'	=> array('int', 0),
-				'ReadingSpeedWPM'	=> array('int', 0),
-				'CurrencyId'		=> array('int', 0),
-				'HourlyRate'		=> array('int', 0),
-				'UserRole'			=> array('int', Enums\UserRole::Client)
+				'TypingSpeedCPM'		=> array('int', 0),
+				'ReadingSpeedWPM'		=> array('int', 0),
+				'CurrencyId'			=> array('int', 0),
+				'HourlyRate'			=> array('int', 0),
+				'MobileTypingSpeedCPM'	=> array('int', 0),
+				'MobileReadingSpeedWPM'	=> array('int', 0),
+				'MobileCurrencyId'		=> array('int', 0),
+				'MobileHourlyRate'		=> array('int', 0),
+				'UserRole'				=> array('int', Enums\UserRole::Client)
 			]
 		);
 	}
@@ -127,6 +131,10 @@ class Module extends \Aurora\System\Module\AbstractModule
 				'ReadingSpeedWPM'	=> $oUser->{self::GetName().'::ReadingSpeedWPM'},
 				'CurrencyId'		=> $oUser->{self::GetName().'::CurrencyId'},
 				'HourlyRate'		=> $oUser->{self::GetName().'::HourlyRate'},
+				'MobileTypingSpeedCPM'	=> $oUser->{self::GetName().'::MobileTypingSpeedCPM'},
+				'MobileReadingSpeedWPM'	=> $oUser->{self::GetName().'::MobileReadingSpeedWPM'},
+				'MobileCurrencyId'		=> $oUser->{self::GetName().'::MobileCurrencyId'},
+				'MobileHourlyRate'		=> $oUser->{self::GetName().'::MobileHourlyRate'},
 				'UserRole'			=> $oUser->{self::GetName().'::UserRole'}
 			];
 		}
@@ -151,6 +159,25 @@ class Module extends \Aurora\System\Module\AbstractModule
 			$oUser->{self::GetName().'::ReadingSpeedWPM'} = $ReadingSpeedWPM;
 			$oUser->{self::GetName().'::CurrencyId'} = $CurrencyId;
 			$oUser->{self::GetName().'::HourlyRate'} = $HourlyRate;
+
+			return $oCoreDecorator->UpdateUserObject($oUser);
+		}
+
+		return false;
+	}
+
+	public function UpdateMobileSettings($TypingSpeedCPM, $ReadingSpeedWPM, $CurrencyId, $HourlyRate)
+	{
+		\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::NormalUser);
+
+		$oUser = \Aurora\System\Api::getAuthenticatedUser();
+		if ($oUser instanceof \Aurora\Modules\Core\Classes\User)
+		{
+			$oCoreDecorator = \Aurora\Modules\Core\Module::Decorator();
+			$oUser->{self::GetName().'::MobileTypingSpeedCPM'} = $TypingSpeedCPM;
+			$oUser->{self::GetName().'::MobileReadingSpeedWPM'} = $ReadingSpeedWPM;
+			$oUser->{self::GetName().'::MobileCurrencyId'} = $CurrencyId;
+			$oUser->{self::GetName().'::MobileHourlyRate'} = $HourlyRate;
 
 			return $oCoreDecorator->UpdateUserObject($oUser);
 		}

@@ -24,15 +24,15 @@ function ComposeWordCounterFormView()
 		{ name: 'Medium',	value: 140 },
 		{ name: 'Fast',		value: 180 }
 	];
-	this.typingSpeed = ko.observable(100);
-	this.typingSpeedCPM = ko.observable(Settings.typingSpeedCPM() ? Settings.typingSpeedCPM() : 100);
+	this.typingSpeed = ko.observable((Settings.typingSpeedCPM() === 140 || Settings.typingSpeedCPM() === 180) ? Settings.typingSpeedCPM() : 100);
+	this.typingSpeedCPM = ko.observable(Settings.typingSpeedCPM());
 	this.readingSpeedValues = [
 		{ name: 'Slow',		value: 170 },
 		{ name: 'Medium',	value: 220 },
 		{ name: 'Fast',		value: 270 }
 	];
-	this.readingSpeed = ko.observable(170);
-	this.readingSpeedWPM = ko.observable(Settings.readingSpeedWPM() ? Settings.readingSpeedWPM() : 170);
+	this.readingSpeed = ko.observable((Settings.readingSpeedWPM() === 220 || Settings.readingSpeedWPM() === 270) ? Settings.typingSpeedCPM() : 170);
+	this.readingSpeedWPM = ko.observable(Settings.readingSpeedWPM());
 	this.currencyValues = [
 		{ name: '$USD',		value: Enums.Currency.USD },
 		{ name: '€EUR',		value: Enums.Currency.EUR }

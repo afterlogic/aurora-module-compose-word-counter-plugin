@@ -1,0 +1,64 @@
+<div class="screen SettingsLayout" style="display: none;">
+	<div class="panels settings">
+		<div class="page">
+			<div class="page-content">
+				<div class="navbar">
+					<div class="navbar-inner">
+						<div class="center sliding item canSelect" data-bind="i18n: {'key': '%MODULENAME%/HEADING_SETTINGS_TAB_MOBILE'}"></div>
+
+						<div class="right">
+							<a href="javascript:void(0)" class="link icon-only open-panel aurora-icons settings" data-bind="click: function () { showApps(!showApps()); }"><i class="icon"></i></a>
+						</div>
+					</div>
+				</div>
+				<div class="content-block">
+					<div class="block">
+						<div class="content-block-title">
+							<span style="font-size: larger;" data-bind="i18n: {'key': '%MODULENAME%/LABEL_TYPING_SPEED'}"></span>
+						</div>
+						<div class="content-block">
+							<div>
+								<select data-bind="options: typingSpeedValues, value: typingSpeed, optionsText: 'name', optionsValue: 'value' "></select>
+								<span data-bind="i18n: {'key': '%MODULENAME%/LABEL_OR'}"></span>
+							</div>
+							<div style="margin-top: 10px;">
+								<input type="text" style="width: 100px;" data-bind="value: typingSpeedCPM">
+								<span data-bind="i18n: {'key': '%MODULENAME%/LABEL_CHARACTERS_PER_MIN'}"></span>
+							</div>
+						</div>
+						<div class="content-block-title">
+							<span style="font-size: larger;" data-bind="i18n: {'key': '%MODULENAME%/LABEL_READING_SPEED'}"></span>
+						</div>
+						<div class="content-block">
+							<div>
+								<select data-bind="options: readingSpeedValues, value: readingSpeed, optionsText: 'name', optionsValue: 'value' "></select>
+								<span data-bind="i18n: {'key': '%MODULENAME%/LABEL_OR'}"></span>
+							</div>
+							<div style="margin-top: 10px;">
+								<input type="text" style="width: 100px;" data-bind="value: readingSpeedWPM">
+								<span data-bind="i18n: {'key': '%MODULENAME%/LABEL_WORDS_PER_MIN'}"></span>
+							</div>
+						</div>
+						<div class="content-block-title">
+							<span style="font-size: larger;" data-bind="i18n: {'key': '%MODULENAME%/LABEL_HOURLY_RATE'}"></span>
+						</div>
+						<div class="content-block">
+							<select data-bind="options: currencyValues, value: currency, optionsText: 'name', optionsValue: 'value' "></select>
+							<input style="width: 100px; margin-left: 10px;" type="text" data-bind="value: hourlyRate">
+						</div>
+						<div class="content-block">
+							<span data-bind="i18n: {'key': '%MODULENAME%/HINT_CPM_WPM'}"></span>
+						</div>
+					</div>
+<!--					<a href="javascript: void(0);" class="floating-button" data-bind="click: save">
+						<i class="icon icon-plus"></i>
+					</a>-->
+					<div class="block block-strong">
+						<p><a href="#" class="button button-fill" data-bind="click: save, i18n: {'key': 'COREWEBCLIENT/ACTION_SAVE'}, visible: !isSaving()"></a></p>
+						<p><a href="#" class="button button-fill color-gray" data-bind="i18n: {'key': 'COREWEBCLIENT/ACTION_SAVE_IN_PROGRESS'}, visible: isSaving()"></a></p>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
