@@ -387,16 +387,7 @@ module.exports = function (oAppData) {
 							&& ko.isSubscribable(oParams.View.oHtmlEditor.actualTextСhanged)
 						)
 					{
-						if (App.isMobile() && ko.isSubscribable(oParams.View.shown))
-						{
-							oParams.View.shown.subscribe(function () {
-								if (!oParams.View.shown())
-								{
-									$('.compose-screen').find('.counter-panel').remove();
-								}
-							})
-						}
-						oParams.View.oHtmlEditor.actualTextСhanged.subscribe(function() {
+						var fillCounterPanel = function () {
 							var sHtml = getHtmlWithoutUncountableParts(oParams.View.oHtmlEditor.getEditableArea());
 							iTotalChar = getTotalCharsCount(sHtml);
 							iTotalWord = getTotalWordsCount(sHtml);
@@ -450,7 +441,16 @@ module.exports = function (oAppData) {
 									counterPanelElement.html(`${charactersCounter}${sessionCounter}${amountCounter}`);
 								}
 							}
-						}, this);
+						};
+						if (ko.isSubscribable(oParams.View.textBody))
+						{
+							oParams.View.textBody.subscribe(function () {
+								setTimeout(function () {
+									fillCounterPanel();
+								}, 100);
+							});
+						}
+						oParams.View.oHtmlEditor.actualTextСhanged.subscribe(fillCounterPanel);
 
 						bInitialized = true;
 					}
