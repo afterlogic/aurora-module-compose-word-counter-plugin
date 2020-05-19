@@ -163,16 +163,16 @@ module.exports = function (oAppData) {
 			},
 			getScreens: function () {
 				var oScreens = {};
-				if (App.isMobile())
+				if (App.isMobile() && Settings.userRole() === Enums.WordCounterUserRole.Lawyer)
 				{
-					oScreens[Settings.HashModuleName + 'settings'] = function () {
+					oScreens[Settings.HashModuleName + '-settings'] = function () {
 						return require('modules/%ModuleName%/js/views/MobileSettingsView.js');
 					};
 				}
 				return oScreens;
 			},
 			getHeaderItem: function () {
-				if (App.isMobile())
+				if (App.isMobile() && Settings.userRole() === Enums.WordCounterUserRole.Lawyer)
 				{
 					if (HeaderItemView === null)
 					{
@@ -184,7 +184,7 @@ module.exports = function (oAppData) {
 					}
 					return {
 						item: HeaderItemView,
-						name: Settings.HashModuleName + 'settings'
+						name: Settings.HashModuleName + '-settings'
 					};
 				}
 				return null;
