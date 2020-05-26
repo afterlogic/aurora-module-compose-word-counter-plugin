@@ -39,6 +39,7 @@ class Operation extends \Aurora\System\EAV\Entity
 			'TypingSpeedCPM'	=> ['int', 0],
 			'ReadingSpeedWPM'	=> ['int', 0],
 			'HourlyRate'		=> ['int', 0],
+			'BillingInterval'	=> ['int', 0],
 			'Value'				=> ['double', 0],
 			'CurrencyId'		=> ['int', 0],
 			'MessageId'			=> ['string', ''],

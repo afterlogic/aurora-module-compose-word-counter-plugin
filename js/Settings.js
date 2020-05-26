@@ -16,6 +16,7 @@ module.exports = {
 	readingSpeedWPM: ko.observable(170),
 	currency: ko.observable(Enums.Currency.USD),
 	hourlyRate: ko.observable(0),
+	BillingInterval: 1,
 	userRole: ko.observable(Enums.WordCounterUserRole.Client),
 	/**
 	 * Initializes settings from AppData object sections.
@@ -37,6 +38,7 @@ module.exports = {
 			this.readingSpeedWPM(Types.isPositiveNumber(oAppDataSection[sPrefix + 'ReadingSpeedWPM']) ? oAppDataSection[sPrefix + 'ReadingSpeedWPM'] : this.readingSpeedWPM());
 			this.currency(Types.pEnum(oAppDataSection[sPrefix + 'CurrencyId'], Enums.Currency, this.currency()));
 			this.hourlyRate(Types.pInt(oAppDataSection[sPrefix + 'HourlyRate'], this.hourlyRate()));
+			this.BillingInterval = Types.pInt(oAppDataSection[sPrefix + 'BillingInterval'], this.BillingInterval);
 			this.userRole(Types.pEnum(oAppDataSection.UserRole, Enums.WordCounterUserRole, this.userRole()));
 		}
 	},
@@ -44,16 +46,18 @@ module.exports = {
 	/**
 	 * Updates new settings values after saving on server.
 	 *
-	 * @param {number} typingSpeedCPM
-	 * @param {number} readingSpeedWPM
-	 * @param {number} currency
-	 * @param {number} hourlyRate
+	 * @param {number} iTypingSpeedCPM
+	 * @param {number} iReadingSpeedWPM
+	 * @param {number} iCurrency
+	 * @param {number} iHourlyRate
+	 * @param {number} iBillingInterval
 	 */
-	update: function (typingSpeedCPM, readingSpeedWPM, currency, hourlyRate)
+	update: function (iTypingSpeedCPM, iReadingSpeedWPM, iCurrency, iHourlyRate, iBillingInterval)
 	{
-		this.typingSpeedCPM(Types.pInt(typingSpeedCPM));
-		this.readingSpeedWPM(Types.pInt(readingSpeedWPM));
-		this.currency(Types.pInt(currency));
-		this.hourlyRate(Types.pInt(hourlyRate));
+		this.typingSpeedCPM(Types.pInt(iTypingSpeedCPM));
+		this.readingSpeedWPM(Types.pInt(iReadingSpeedWPM));
+		this.currency(Types.pInt(iCurrency));
+		this.hourlyRate(Types.pInt(iHourlyRate));
+		this.BillingInterval = Types.pInt(iBillingInterval);
 	}
 };

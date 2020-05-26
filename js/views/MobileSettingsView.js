@@ -53,6 +53,14 @@ function CMobileSettingsView()
 	];
 	this.currency = ko.observable(Settings.currency());
 	this.hourlyRate = ko.observable(Settings.hourlyRate());
+	this.billingIntervalValues = [
+		{ name: TextUtils.i18n('%MODULENAME%/LABEL_HOURLY_BILLING_INTERVAL_VALUE_PLURAL', { 'COUNT': 1 }, null, 1), value: 1 },
+		{ name: TextUtils.i18n('%MODULENAME%/LABEL_HOURLY_BILLING_INTERVAL_VALUE_PLURAL', { 'COUNT': 6 }, null, 6), value: 6 },
+		{ name: TextUtils.i18n('%MODULENAME%/LABEL_HOURLY_BILLING_INTERVAL_VALUE_PLURAL', { 'COUNT': 10 }, null, 10), value: 10 },
+		{ name: TextUtils.i18n('%MODULENAME%/LABEL_HOURLY_BILLING_INTERVAL_VALUE_PLURAL', { 'COUNT': 15 }, null, 15), value: 15 }
+	];
+	this.billingInterval = ko.observable(Settings.BillingInterval);
+	
 	this.typingSpeed.subscribe(function (newValue) {
 		this.typingSpeedCPM(newValue);
 	}, this);
@@ -90,7 +98,8 @@ CMobileSettingsView.prototype.getParametersForSave = function ()
 		'TypingSpeedCPM': Types.pInt(this.typingSpeedCPM()),
 		'ReadingSpeedWPM': Types.pInt(this.readingSpeedWPM()),
 		'CurrencyId': Types.pInt(this.currency()),
-		'HourlyRate': Types.pInt(this.hourlyRate())
+		'HourlyRate': Types.pInt(this.hourlyRate()),
+		'BillingInterval': Types.pInt(this.billingInterval())
 	};
 };
 
@@ -157,7 +166,7 @@ CMobileSettingsView.prototype.validateBeforeSave = function ()
 
 CMobileSettingsView.prototype.applySavedValues = function ()
 {
-	Settings.update(this.typingSpeedCPM(), this.readingSpeedWPM(), this.currency(), this.hourlyRate());
+	Settings.update(this.typingSpeedCPM(), this.readingSpeedWPM(), this.currency(), this.hourlyRate(), this.billingInterval());
 };
 
 module.exports = new CMobileSettingsView();

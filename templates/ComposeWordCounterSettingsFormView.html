@@ -23,6 +23,9 @@
 				</span>
 				<span class="label post-label" data-bind="i18n: {'key': '%MODULENAME%/LABEL_WORDS_PER_MIN'}"></span>
 			</div>
+			<div class="hint row">
+				<span class="value" data-bind="i18n: {'key': '%MODULENAME%/HINT_CPM_WPM'}"></span>
+			</div>
 			<div class="row">
 				<span class="label" data-bind="i18n: {'key': '%MODULENAME%/LABEL_HOURLY_RATE'}"></span>
 				<select class="value input short" data-bind="options: currencyValues, value: currency, optionsText: 'name', optionsValue: 'value' "></select>
@@ -30,8 +33,9 @@
 					<input class="input short" type="text" data-bind="value: hourlyRate">
 				</span>
 			</div>
-			<div class="hint row">
-				<span class="value" data-bind="i18n: {'key': '%MODULENAME%/HINT_CPM_WPM'}"></span>
+			<div class="row">
+				<span class="label" data-bind="i18n: {'key': '%MODULENAME%/LABEL_HOURLY_BILLING_INTERVALS'}"></span>
+				<select class="value input short" data-bind="options: billingIntervalValues, value: billingInterval, optionsText: 'name', optionsValue: 'value' "></select>
 			</div>
 		</div>
 	</div>

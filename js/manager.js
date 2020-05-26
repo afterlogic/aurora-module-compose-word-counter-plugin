@@ -132,10 +132,13 @@ module.exports = function (oAppData) {
 				iTypingSpeed = getHeaderIntValue('X-ComposeWordCounter-TypingSpeed', oMessage.sourceHeaders(), Settings.typingSpeedCPM()),
 				iCurrency = getHeaderIntValue('X-ComposeWordCounter-Currency', oMessage.sourceHeaders(), Settings.currency()),
 				iHourlyRate = getHeaderIntValue('X-ComposeWordCounter-HourlyRate', oMessage.sourceHeaders(), Settings.hourlyRate()),
+				iBillingInterval = getHeaderIntValue('X-ComposeWordCounter-BillingInterval', oMessage.sourceHeaders(), Settings.BillingInterval),
+				iBillingIntervalScnds = iBillingInterval * 60,
 				bIncomingMessage = isIncomingMessage(oMessage),
 				iTimeMinutes = bIncomingMessage ? (iTotalWord / iReadingSpeed) : (iTotalChar / iTypingSpeed),
 				iTimeSeconds = Math.floor(iTimeMinutes * 60),
-				iValue = (iTimeSeconds / 3600) * iHourlyRate
+				iCeilSeconds = Math.ceil(iTimeSeconds / iBillingIntervalScnds) * iBillingIntervalScnds,
+				iValue = (iCeilSeconds / 3600) * iHourlyRate
 			;
 			
 			return {
@@ -143,10 +146,11 @@ module.exports = function (oAppData) {
 				TypingSpeed: iTypingSpeed,
 				Currency: iCurrency,
 				HourlyRate: iHourlyRate,
+				BillingInterval: iBillingInterval,
 				TotalWord: iTotalWord,
 				TotalChar: iTotalChar,
 				Value: iValue,
-				TimeSeconds: iTimeSeconds,
+				TimeSeconds: iCeilSeconds,
 				IsIncomingMessage: bIncomingMessage
 			};
 		},
@@ -217,7 +221,8 @@ module.exports = function (oAppData) {
 											CURRENTWPM: oMessageValue.ReadingSpeed,
 											CURRENTCPM: oMessageValue.TypingSpeed,
 											CURRENTHOURLYRATE: oMessageValue.HourlyRate,
-											CURRENCYSYMBOL: getCurrencySymbol(oMessageValue.Currency)
+											CURRENCYSYMBOL: getCurrencySymbol(oMessageValue.Currency),
+											CURRENTHBI: oMessageValue.BillingInterval
 										}),
 										null,
 										TextUtils.i18n('%MODULENAME%/POPUP_TITLE_MESSAGE_VALUE')
@@ -253,6 +258,7 @@ module.exports = function (oAppData) {
 												Value: oMessageValue.Value,
 												CurrencyId: oMessageValue.Currency,
 												HourlyRate: oMessageValue.HourlyRate,
+												BillingInterval: oMessageValue.BillingInterval,
 												MessageId: this.currentMessage().messageId(),
 												MessageSubject: this.currentMessage().subject(),
 												MessageText: this.currentMessage().text(),
@@ -371,7 +377,7 @@ module.exports = function (oAppData) {
 
 										},
 										TextUtils.i18n('The bill clearing confirmation'),
-										'Clear'
+										TextUtils.i18n('Clear')
 									]);
 								}
 							}
@@ -395,9 +401,15 @@ module.exports = function (oAppData) {
 							var
 								iTimeSeconds = Settings.typingSpeedCPM() ? Math.floor((iTotalChar / Settings.typingSpeedCPM()) * 60) : 0,
 								dTime = new Date(null),
-								iAmount = (iTimeSeconds / 3600) * Settings.hourlyRate()
+								iAmount = (iTimeSeconds / 3600) * Settings.hourlyRate(),
+								iBillingIntervalScnds = Settings.BillingInterval * 60,
+								iCeilSeconds = Math.ceil(iTimeSeconds / iBillingIntervalScnds) * iBillingIntervalScnds,
+								dCeilTime = new Date(null),
+								iCeilAmount = (iCeilSeconds / 3600) * Settings.hourlyRate(),
+								sCurrencySymbol = getCurrencySymbol(Settings.currency())
 							;
 							dTime.setSeconds(iTimeSeconds);
+							dCeilTime.setSeconds(iCeilSeconds);
 							
 							if (App.isMobile())
 							{
@@ -407,8 +419,8 @@ module.exports = function (oAppData) {
 									counterPanel = `<div style="box-sizing:border-box;display:flex;width: 100%;padding:0;margin-bottom:-1px;" class="counter-panel">${charactersCounter}${sessionCounter}${amountCounter}</div>`,
 									charactersCounter = `<div style="box-sizing:border-box;flex-grow:1;padding:2px 5px;border:1px solid #cccccc;border-bottom-left-radius:5px;border-top-left-radius:5px;border-right:0;background-color:#f0f0f0;"><span style="font-weight:bold;font-size:16px">${iTotalChar}</span></br><span style="color:#5a6373;">Characters</span></div>`,
 									wordsCounter = `<div style="box-sizing:border-box;flex-grow:1;padding:2px 5px;border:1px solid #cccccc;border-right:0;background-color:#f0f0f0;"><span style="font-weight:bold;font-size:16px">${iTotalWord}</span></br><span style="color:#5a6373;">Words</span></div>`,
-									sessionCounter = `<div style="box-sizing:border-box;flex-grow:1;padding:2px 5px;border:1px solid #cccccc;border-right:0;background-color:#f0f0f0;"><span style="font-weight:bold;font-size:16px">${dTime.toISOString().substr(11, 8)}</span></br><span style="color:#5a6373;">Session Time</span></div>`,
-									amountCounter = `<div style="box-sizing:border-box;flex-grow:1;padding:2px 5px;border:1px solid #cccccc;background-color:#f0f0f0;border-bottom-right-radius:5px;border-top-right-radius:5px;"><span style="font-weight:bold;font-size:16px">${getCurrencySymbol(Settings.currency())}${iAmount.toFixed(2)}</span></br><span style="color:#5a6373;">Amount</span></div>`
+									sessionCounter = `<div style="box-sizing:border-box;flex-grow:1;padding:2px 5px;border:1px solid #cccccc;border-right:0;background-color:#f0f0f0;"><span style="font-weight:bold;font-size:16px">${dCeilTime.toISOString().substr(11, 8)} (${dTime.toISOString().substr(11, 8)})</span></br><span style="color:#5a6373;">Session Time</span></div>`,
+									amountCounter = `<div style="box-sizing:border-box;flex-grow:1;padding:2px 5px;border:1px solid #cccccc;background-color:#f0f0f0;border-bottom-right-radius:5px;border-top-right-radius:5px;"><span style="font-weight:bold;font-size:16px">${sCurrencySymbol}${iCeilAmount.toFixed(2)} (${sCurrencySymbol}${iAmount.toFixed(2)})</span></br><span style="color:#5a6373;">Amount</span></div>`
 								;
 								if (!counterPanelElement.length)
 								{
@@ -428,8 +440,8 @@ module.exports = function (oAppData) {
 									counterPanel = `<div style="box-sizing:border-box;display:flex;width: 100%;padding: 0 12px;" class="counter-panel">${charactersCounter}${sessionCounter}${amountCounter}</div>`,
 									charactersCounter = `<div style="box-sizing:border-box;flex-grow:1;padding:15px;border:1px solid #cccccc;border-bottom-left-radius:5px;border-top-left-radius:5px;border-right:0;background-color:#f0f0f0;"><span style="font-weight:bold;font-size:16px">${iTotalChar}</span></br><span style="color:#5a6373;">Characters</span></div>`,
 									wordsCounter = `<div style="box-sizing:border-box;flex-grow:1;padding:15px;border:1px solid #cccccc;border-right:0;background-color:#f0f0f0;"><span style="font-weight:bold;font-size:16px">${iTotalWord}</span></br><span style="color:#5a6373;">Words</span></div>`,
-									sessionCounter = `<div style="box-sizing:border-box;flex-grow:1;padding:15px;border:1px solid #cccccc;border-right:0;background-color:#f0f0f0;"><span style="font-weight:bold;font-size:16px">${dTime.toISOString().substr(11, 8)}</span></br><span style="color:#5a6373;">Session Time</span></div>`,
-									amountCounter = `<div style="box-sizing:border-box;flex-grow:1;padding:15px;border:1px solid #cccccc;background-color:#f0f0f0;border-bottom-right-radius:5px;border-top-right-radius:5px;"><span style="font-weight:bold;font-size:16px">${getCurrencySymbol(Settings.currency())}${iAmount.toFixed(2)}</span></br><span style="color:#5a6373;">Amount</span></div>`
+									sessionCounter = `<div style="box-sizing:border-box;flex-grow:1;padding:15px;border:1px solid #cccccc;border-right:0;background-color:#f0f0f0;"><span style="font-weight:bold;font-size:16px">${dCeilTime.toISOString().substr(11, 8)} (${dTime.toISOString().substr(11, 8)})</span></br><span style="color:#5a6373;">Session Time</span></div>`,
+									amountCounter = `<div style="box-sizing:border-box;flex-grow:1;padding:15px;border:1px solid #cccccc;background-color:#f0f0f0;border-bottom-right-radius:5px;border-top-right-radius:5px;"><span style="font-weight:bold;font-size:16px">${sCurrencySymbol}${iCeilAmount.toFixed(2)} (${sCurrencySymbol}${iAmount.toFixed(2)})</span></br><span style="color:#5a6373;">Amount</span></div>`
 								;
 								if (!counterPanelElement.length)
 								{
@@ -465,6 +477,7 @@ module.exports = function (oAppData) {
 							'X-ComposeWordCounter-TypingSpeed': Settings.typingSpeedCPM(),
 							'X-ComposeWordCounter-Currency': Settings.currency(),
 							'X-ComposeWordCounter-HourlyRate': Settings.hourlyRate(),
+							'X-ComposeWordCounter-BillingInterval': Settings.BillingInterval,
 							'X-ComposeWordCounter-TotalChar': iTotalChar,
 							'X-ComposeWordCounter-TotalWord': iTotalWord
 						};

@@ -50,10 +50,12 @@ class Module extends \Aurora\System\Module\AbstractModule
 				'ReadingSpeedWPM'		=> array('int', 0),
 				'CurrencyId'			=> array('int', 0),
 				'HourlyRate'			=> array('int', 0),
+				'BillingInterval'		=> array('int', 0),
 				'MobileTypingSpeedCPM'	=> array('int', 0),
 				'MobileReadingSpeedWPM'	=> array('int', 0),
 				'MobileCurrencyId'		=> array('int', 0),
 				'MobileHourlyRate'		=> array('int', 0),
+				'MobileBillingInterval'	=> array('int', 0),
 				'UserRole'				=> array('int', Enums\UserRole::Client)
 			]
 		);
@@ -127,15 +129,17 @@ class Module extends \Aurora\System\Module\AbstractModule
 		if (!empty($oUser) && $oUser->isNormalOrTenant())
 		{
 			$aSettings = [
-				'TypingSpeedCPM'	=> $oUser->{self::GetName().'::TypingSpeedCPM'},
-				'ReadingSpeedWPM'	=> $oUser->{self::GetName().'::ReadingSpeedWPM'},
-				'CurrencyId'		=> $oUser->{self::GetName().'::CurrencyId'},
-				'HourlyRate'		=> $oUser->{self::GetName().'::HourlyRate'},
+				'TypingSpeedCPM'		=> $oUser->{self::GetName().'::TypingSpeedCPM'},
+				'ReadingSpeedWPM'		=> $oUser->{self::GetName().'::ReadingSpeedWPM'},
+				'CurrencyId'			=> $oUser->{self::GetName().'::CurrencyId'},
+				'HourlyRate'			=> $oUser->{self::GetName().'::HourlyRate'},
+				'BillingInterval'		=> $oUser->{self::GetName().'::BillingInterval'},
 				'MobileTypingSpeedCPM'	=> $oUser->{self::GetName().'::MobileTypingSpeedCPM'},
 				'MobileReadingSpeedWPM'	=> $oUser->{self::GetName().'::MobileReadingSpeedWPM'},
 				'MobileCurrencyId'		=> $oUser->{self::GetName().'::MobileCurrencyId'},
 				'MobileHourlyRate'		=> $oUser->{self::GetName().'::MobileHourlyRate'},
-				'UserRole'			=> $oUser->{self::GetName().'::UserRole'}
+				'MobileBillingInterval'	=> $oUser->{self::GetName().'::MobileBillingInterval'},
+				'UserRole'				=> $oUser->{self::GetName().'::UserRole'}
 			];
 		}
 
@@ -147,7 +151,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 	 *
 	 * @return boolean
 	 */
-	public function UpdateSettings($TypingSpeedCPM, $ReadingSpeedWPM, $CurrencyId, $HourlyRate)
+	public function UpdateSettings($TypingSpeedCPM, $ReadingSpeedWPM, $CurrencyId, $HourlyRate, $BillingInterval)
 	{
 		\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::NormalUser);
 
@@ -159,6 +163,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 			$oUser->{self::GetName().'::ReadingSpeedWPM'} = $ReadingSpeedWPM;
 			$oUser->{self::GetName().'::CurrencyId'} = $CurrencyId;
 			$oUser->{self::GetName().'::HourlyRate'} = $HourlyRate;
+			$oUser->{self::GetName().'::BillingInterval'} = $BillingInterval;
 
 			return $oCoreDecorator->UpdateUserObject($oUser);
 		}
@@ -166,7 +171,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 		return false;
 	}
 
-	public function UpdateMobileSettings($TypingSpeedCPM, $ReadingSpeedWPM, $CurrencyId, $HourlyRate)
+	public function UpdateMobileSettings($TypingSpeedCPM, $ReadingSpeedWPM, $CurrencyId, $HourlyRate, $BillingInterval)
 	{
 		\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::NormalUser);
 
@@ -178,6 +183,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 			$oUser->{self::GetName().'::MobileReadingSpeedWPM'} = $ReadingSpeedWPM;
 			$oUser->{self::GetName().'::MobileCurrencyId'} = $CurrencyId;
 			$oUser->{self::GetName().'::MobileHourlyRate'} = $HourlyRate;
+			$oUser->{self::GetName().'::MobileBillingInterval'} = $BillingInterval;
 
 			return $oCoreDecorator->UpdateUserObject($oUser);
 		}
@@ -217,7 +223,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 	}
 
 	public function AddToBill($UserId, $ClientEmail,
-		$TotalChar, $TotalWord, $TypingSpeedCPM, $ReadingSpeedWPM, $Value, $CurrencyId, $HourlyRate,
+		$TotalChar, $TotalWord, $TypingSpeedCPM, $ReadingSpeedWPM, $Value, $CurrencyId, $HourlyRate, $BillingInterval,
 		$MessageId, $MessageSubject, $MessageText, $MessageDate, $Sender, $IsIncoming
 	)
 	{
@@ -273,6 +279,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 				$oNewOperation->Value = $Value;
 				$oNewOperation->CurrencyId = $CurrencyId;
 				$oNewOperation->HourlyRate = $HourlyRate;
+				$oNewOperation->BillingInterval = $BillingInterval;
 				$oNewOperation->MessageId = $MessageId;
 				$oNewOperation->MessageSubject =  substr($MessageSubject, 0, 255);
 				$oNewOperation->MessageText = $MessageText;
