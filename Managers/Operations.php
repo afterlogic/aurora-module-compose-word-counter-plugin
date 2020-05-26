@@ -61,6 +61,24 @@ class Operations extends \Aurora\System\Managers\AbstractManager
 	}
 
 	/**
+	 * @param string $sBilluuid
+	 * @return bool
+	 * @throws \Aurora\System\Exceptions\BaseException
+	 */
+	public function deleteBillOperationsPermanently($sBilluuid)
+	{
+		$aFilters = [
+			'BillUUID'	=> [$sBilluuid, '=']
+		];
+		$aBillOperations = $this->getOperations(0, 0, $aFilters);
+		$aBillOperationsIds = [];
+		foreach ($aBillOperations as $oOperation) {
+			$aBillOperationsIds[] = $oOperation->EntityId;
+		}
+		return $this->oEavManager->deleteEntities($aBillOperationsIds);
+	}
+
+	/**
 	 * @param int $iLimit Limit
 	 * @param int $iOffset Offset
 	 * @return array|bool

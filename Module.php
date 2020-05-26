@@ -305,7 +305,7 @@ class Module extends \Aurora\System\Module\AbstractModule
 	{
 		\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::NormalUser);
 
-		$aResult = [];
+		$bResult = false;
 		$oOwnerUser = \Aurora\System\Api::getAuthenticatedUser();
 
 		// if($ClientEmail === $oOwnerUser->PublicId)
@@ -316,12 +316,15 @@ class Module extends \Aurora\System\Module\AbstractModule
 
 		if ($oLastBill) {
 			// $aResult[] = $oLastBill->ClientUserEmail;
-			$aResult = $this->getManager('Bills')->deleteBill($oLastBill);
+			if ($this->getManager('Operations')->deleteBillOperationsPermanently($oLastBill->UUID))
+			{
+				$bResult = $this->getManager('Bills')->deleteBill($oLastBill);
+			}
 		} else {
 			throw new \Aurora\System\Exceptions\BaseException(Enums\ErrorCodes::NoBillsOpened);
 		}
 
-		return $aResult;
+		return $bResult;
 	}
 
 	public function GetOpenBillByClientEmail($ClientEmail)
