@@ -12,12 +12,15 @@ var
 module.exports = {
 	ServerModuleName: '%ModuleName%',
 	HashModuleName: 'compose-word-counter',
-	typingSpeedCPM: ko.observable(100),
-	readingSpeedWPM: ko.observable(170),
-	currency: ko.observable(Enums.Currency.USD),
-	hourlyRate: ko.observable(0),
+	
+	TypingSpeedCPM: 100,
+	ReadingSpeedWPM: 170,
+	Currency: Enums.Currency.USD,
+	HourlyRate: 0,
 	BillingInterval: 1,
-	userRole: ko.observable(Enums.WordCounterUserRole.Client),
+	
+	UserRole: Enums.WordCounterUserRole.Client,
+	
 	/**
 	 * Initializes settings from AppData object sections.
 	 * 
@@ -29,12 +32,12 @@ module.exports = {
 
 		if (!_.isEmpty(oAppDataSection))
 		{
-			this.typingSpeedCPM(Types.isPositiveNumber(oAppDataSection.TypingSpeedCPM) ? oAppDataSection.TypingSpeedCPM : this.typingSpeedCPM());
-			this.readingSpeedWPM(Types.isPositiveNumber(oAppDataSection.ReadingSpeedWPM) ? oAppDataSection.ReadingSpeedWPM : this.readingSpeedWPM());
-			this.currency(Types.pEnum(oAppDataSection.CurrencyId, Enums.Currency, this.currency()));
-			this.hourlyRate(Types.pInt(oAppDataSection.HourlyRate, this.hourlyRate()));
+			this.TypingSpeedCPM = Types.isPositiveNumber(oAppDataSection.TypingSpeedCPM) ? oAppDataSection.TypingSpeedCPM : this.TypingSpeedCPM;
+			this.ReadingSpeedWPM = Types.isPositiveNumber(oAppDataSection.ReadingSpeedWPM) ? oAppDataSection.ReadingSpeedWPM : this.ReadingSpeedWPM;
+			this.Currency = Types.pEnum(oAppDataSection.CurrencyId, Enums.Currency, this.Currency);
+			this.HourlyRate = Types.pInt(oAppDataSection.HourlyRate, this.HourlyRate);
 			this.BillingInterval = Types.pInt(oAppDataSection.BillingInterval, this.BillingInterval);
-			this.userRole(Types.pEnum(oAppDataSection.UserRole, Enums.WordCounterUserRole, this.userRole()));
+			this.UserRole = Types.pEnum(oAppDataSection.UserRole, Enums.WordCounterUserRole, this.UserRole);
 		}
 	},
 
@@ -49,10 +52,10 @@ module.exports = {
 	 */
 	update: function (iTypingSpeedCPM, iReadingSpeedWPM, iCurrency, iHourlyRate, iBillingInterval)
 	{
-		this.typingSpeedCPM(Types.pInt(iTypingSpeedCPM));
-		this.readingSpeedWPM(Types.pInt(iReadingSpeedWPM));
-		this.currency(Types.pInt(iCurrency));
-		this.hourlyRate(Types.pInt(iHourlyRate));
+		this.TypingSpeedCPM = Types.pInt(iTypingSpeedCPM);
+		this.ReadingSpeedWPM = Types.pInt(iReadingSpeedWPM);
+		this.Currency = Types.pInt(iCurrency);
+		this.HourlyRate = Types.pInt(iHourlyRate);
 		this.BillingInterval = Types.pInt(iBillingInterval);
 	}
 };

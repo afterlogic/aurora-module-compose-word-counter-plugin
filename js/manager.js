@@ -128,10 +128,10 @@ module.exports = function (oAppData) {
 			var
 				iTotalWord = getHeaderIntValue('X-ComposeWordCounter-TotalWord', oMessage.sourceHeaders(), 0),
 				iTotalChar = getHeaderIntValue('X-ComposeWordCounter-TotalChar', oMessage.sourceHeaders(), 0),
-				iReadingSpeed = getHeaderIntValue('X-ComposeWordCounter-ReadingSpeed', oMessage.sourceHeaders(), Settings.readingSpeedWPM()),
-				iTypingSpeed = getHeaderIntValue('X-ComposeWordCounter-TypingSpeed', oMessage.sourceHeaders(), Settings.typingSpeedCPM()),
-				iCurrency = getHeaderIntValue('X-ComposeWordCounter-Currency', oMessage.sourceHeaders(), Settings.currency()),
-				iHourlyRate = getHeaderIntValue('X-ComposeWordCounter-HourlyRate', oMessage.sourceHeaders(), Settings.hourlyRate()),
+				iReadingSpeed = getHeaderIntValue('X-ComposeWordCounter-ReadingSpeed', oMessage.sourceHeaders(), Settings.ReadingSpeedWPM),
+				iTypingSpeed = getHeaderIntValue('X-ComposeWordCounter-TypingSpeed', oMessage.sourceHeaders(), Settings.TypingSpeedCPM),
+				iCurrency = getHeaderIntValue('X-ComposeWordCounter-Currency', oMessage.sourceHeaders(), Settings.Currency),
+				iHourlyRate = getHeaderIntValue('X-ComposeWordCounter-HourlyRate', oMessage.sourceHeaders(), Settings.HourlyRate),
 				iBillingInterval = getHeaderIntValue('X-ComposeWordCounter-BillingInterval', oMessage.sourceHeaders(), Settings.BillingInterval),
 				iBillingIntervalScnds = iBillingInterval * 60,
 				bIncomingMessage = isIncomingMessage(oMessage),
@@ -167,7 +167,7 @@ module.exports = function (oAppData) {
 			},
 			getScreens: function () {
 				var oScreens = {};
-				if (App.isMobile() && Settings.userRole() === Enums.WordCounterUserRole.Lawyer)
+				if (App.isMobile() && Settings.UserRole === Enums.WordCounterUserRole.Lawyer)
 				{
 					oScreens[Settings.HashModuleName + '-settings'] = function () {
 						return require('modules/%ModuleName%/js/views/MobileSettingsView.js');
@@ -176,7 +176,7 @@ module.exports = function (oAppData) {
 				return oScreens;
 			},
 			getHeaderItem: function () {
-				if (App.isMobile() && Settings.userRole() === Enums.WordCounterUserRole.Lawyer)
+				if (App.isMobile() && Settings.UserRole === Enums.WordCounterUserRole.Lawyer)
 				{
 					if (HeaderItemView === null)
 					{
@@ -194,7 +194,7 @@ module.exports = function (oAppData) {
 				return null;
 			},
 			start: function (ModulesManager) {
-				if (Settings.userRole() === Enums.WordCounterUserRole.Lawyer)
+				if (Settings.UserRole === Enums.WordCounterUserRole.Lawyer)
 				{
 					if (!App.isMobile())
 					{
@@ -389,7 +389,7 @@ module.exports = function (oAppData) {
 				App.subscribeEvent('MailWebclient::ConstructView::after', function (oParams) {
 					if (
 							oParams.Name === 'CComposeView' && !bInitialized
-							&& Settings.userRole() === Enums.WordCounterUserRole.Lawyer
+							&& Settings.UserRole === Enums.WordCounterUserRole.Lawyer
 							&& ko.isSubscribable(oParams.View.oHtmlEditor.actualTextСhanged)
 						)
 					{
@@ -399,14 +399,14 @@ module.exports = function (oAppData) {
 							iTotalWord = getTotalWordsCount(sHtml);
 							
 							var
-								iTimeSeconds = Settings.typingSpeedCPM() ? Math.floor((iTotalChar / Settings.typingSpeedCPM()) * 60) : 0,
+								iTimeSeconds = Settings.TypingSpeedCPM ? Math.floor((iTotalChar / Settings.TypingSpeedCPM) * 60) : 0,
 								dTime = new Date(null),
-								iAmount = (iTimeSeconds / 3600) * Settings.hourlyRate(),
+								iAmount = (iTimeSeconds / 3600) * Settings.HourlyRate,
 								iBillingIntervalScnds = Settings.BillingInterval * 60,
 								iCeilSeconds = Math.ceil(iTimeSeconds / iBillingIntervalScnds) * iBillingIntervalScnds,
 								dCeilTime = new Date(null),
-								iCeilAmount = (iCeilSeconds / 3600) * Settings.hourlyRate(),
-								sCurrencySymbol = getCurrencySymbol(Settings.currency())
+								iCeilAmount = (iCeilSeconds / 3600) * Settings.HourlyRate,
+								sCurrencySymbol = getCurrencySymbol(Settings.Currency)
 							;
 							dTime.setSeconds(iTimeSeconds);
 							dCeilTime.setSeconds(iCeilSeconds);
@@ -473,10 +473,10 @@ module.exports = function (oAppData) {
 					{
 						oParams.Parameters['CustomHeaders'] = {
 							'X-ComposeWordCounter-SenderClient': App.isMobile ? 'mobile' : 'desktop',
-							'X-ComposeWordCounter-ReadingSpeed': Settings.readingSpeedWPM(),
-							'X-ComposeWordCounter-TypingSpeed': Settings.typingSpeedCPM(),
-							'X-ComposeWordCounter-Currency': Settings.currency(),
-							'X-ComposeWordCounter-HourlyRate': Settings.hourlyRate(),
+							'X-ComposeWordCounter-ReadingSpeed': Settings.ReadingSpeedWPM,
+							'X-ComposeWordCounter-TypingSpeed': Settings.TypingSpeedCPM,
+							'X-ComposeWordCounter-Currency': Settings.Currency,
+							'X-ComposeWordCounter-HourlyRate': Settings.HourlyRate,
 							'X-ComposeWordCounter-BillingInterval': Settings.BillingInterval,
 							'X-ComposeWordCounter-TotalChar': iTotalChar,
 							'X-ComposeWordCounter-TotalWord': iTotalWord

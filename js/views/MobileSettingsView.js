@@ -38,22 +38,22 @@ function CMobileSettingsView()
 		{ name: 'Medium',	value: 140 },
 		{ name: 'Fast',		value: 180 }
 	];
-	this.typingSpeed = ko.observable((Settings.typingSpeedCPM() === 140 || Settings.typingSpeedCPM() === 180) ? Settings.typingSpeedCPM() : 100);
-	this.typingSpeedCPM = ko.observable(Settings.typingSpeedCPM());
+	this.typingSpeed = ko.observable((Settings.TypingSpeedCPM === 140 || Settings.TypingSpeedCPM === 180) ? Settings.TypingSpeedCPM : 100);
+	this.typingSpeedCPM = ko.observable(Settings.TypingSpeedCPM);
 	this.readingSpeedValues = [
 		{ name: 'Slow',		value: 170 },
 		{ name: 'Medium',	value: 220 },
 		{ name: 'Fast',		value: 270 }
 	];
 	
-	this.readingSpeed = ko.observable((Settings.readingSpeedWPM() === 220 || Settings.readingSpeedWPM() === 270) ? Settings.readingSpeedWPM() : 170);
-	this.readingSpeedWPM = ko.observable(Settings.readingSpeedWPM());
+	this.readingSpeed = ko.observable((Settings.ReadingSpeedWPM === 220 || Settings.ReadingSpeedWPM === 270) ? Settings.ReadingSpeedWPM : 170);
+	this.readingSpeedWPM = ko.observable(Settings.ReadingSpeedWPM);
 	this.currencyValues = [
 		{ name: '$USD',		value: Enums.Currency.USD },
 		{ name: '€EUR',		value: Enums.Currency.EUR }
 	];
-	this.currency = ko.observable(Settings.currency());
-	this.hourlyRate = ko.observable(Settings.hourlyRate());
+	this.currency = ko.observable(Settings.Currency);
+	this.hourlyRate = ko.observable(Settings.HourlyRate);
 	this.billingIntervalValues = [
 		{ name: TextUtils.i18n('%MODULENAME%/LABEL_HOURLY_BILLING_INTERVAL_VALUE_PLURAL', { 'COUNT': 1 }, null, 1), value: 1 },
 		{ name: TextUtils.i18n('%MODULENAME%/LABEL_HOURLY_BILLING_INTERVAL_VALUE_PLURAL', { 'COUNT': 6 }, null, 6), value: 6 },
