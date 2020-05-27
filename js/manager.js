@@ -389,68 +389,72 @@ module.exports = function (oAppData) {
 				App.subscribeEvent('MailWebclient::ConstructView::after', function (oParams) {
 					if (
 							oParams.Name === 'CComposeView' && !bInitialized
-							&& Settings.UserRole === Enums.WordCounterUserRole.Lawyer
 							&& ko.isSubscribable(oParams.View.oHtmlEditor.actualTextСhanged)
 						)
 					{
 						var fillCounterPanel = function () {
+							// counting for everybody
 							var sHtml = getHtmlWithoutUncountableParts(oParams.View.oHtmlEditor.getEditableArea());
 							iTotalChar = getTotalCharsCount(sHtml);
 							iTotalWord = getTotalWordsCount(sHtml);
 							
-							var
-								iTimeSeconds = Settings.TypingSpeedCPM ? Math.floor((iTotalChar / Settings.TypingSpeedCPM) * 60) : 0,
-								dTime = new Date(null),
-								iAmount = (iTimeSeconds / 3600) * Settings.HourlyRate,
-								iBillingIntervalScnds = Settings.BillingInterval * 60,
-								iCeilSeconds = Math.ceil(iTimeSeconds / iBillingIntervalScnds) * iBillingIntervalScnds,
-								dCeilTime = new Date(null),
-								iCeilAmount = (iCeilSeconds / 3600) * Settings.HourlyRate,
-								sCurrencySymbol = getCurrencySymbol(Settings.Currency)
-							;
-							dTime.setSeconds(iTimeSeconds);
-							dCeilTime.setSeconds(iCeilSeconds);
-							
-							if (App.isMobile())
+							// displaying only for lawyer
+							if (Settings.UserRole === Enums.WordCounterUserRole.Lawyer)
 							{
 								var
-									counterPanelElement = $('.compose-screen').find('.counter-panel'),
-									panelCenterElement = $('.compose-screen').find('.editor-container'),
-									counterPanel = `<div style="box-sizing:border-box;display:flex;width: 100%;padding:0;margin-bottom:-1px;" class="counter-panel">${charactersCounter}${sessionCounter}${amountCounter}</div>`,
-									charactersCounter = `<div style="box-sizing:border-box;flex-grow:1;padding:2px 5px;border:1px solid #cccccc;border-bottom-left-radius:5px;border-top-left-radius:5px;border-right:0;background-color:#f0f0f0;"><span style="font-weight:bold;font-size:16px">${iTotalChar}</span></br><span style="color:#5a6373;">Characters</span></div>`,
-									wordsCounter = `<div style="box-sizing:border-box;flex-grow:1;padding:2px 5px;border:1px solid #cccccc;border-right:0;background-color:#f0f0f0;"><span style="font-weight:bold;font-size:16px">${iTotalWord}</span></br><span style="color:#5a6373;">Words</span></div>`,
-									sessionCounter = `<div style="box-sizing:border-box;flex-grow:1;padding:2px 5px;border:1px solid #cccccc;border-right:0;background-color:#f0f0f0;"><span style="font-weight:bold;font-size:16px">${dCeilTime.toISOString().substr(11, 8)} (${dTime.toISOString().substr(11, 8)})</span></br><span style="color:#5a6373;">Session Time</span></div>`,
-									amountCounter = `<div style="box-sizing:border-box;flex-grow:1;padding:2px 5px;border:1px solid #cccccc;background-color:#f0f0f0;border-bottom-right-radius:5px;border-top-right-radius:5px;"><span style="font-weight:bold;font-size:16px">${sCurrencySymbol}${iCeilAmount.toFixed(2)} (${sCurrencySymbol}${iAmount.toFixed(2)})</span></br><span style="color:#5a6373;">Amount</span></div>`
+									iTimeSeconds = Settings.TypingSpeedCPM ? Math.floor((iTotalChar / Settings.TypingSpeedCPM) * 60) : 0,
+									dTime = new Date(null),
+									iAmount = (iTimeSeconds / 3600) * Settings.HourlyRate,
+									iBillingIntervalScnds = Settings.BillingInterval * 60,
+									iCeilSeconds = Math.ceil(iTimeSeconds / iBillingIntervalScnds) * iBillingIntervalScnds,
+									dCeilTime = new Date(null),
+									iCeilAmount = (iCeilSeconds / 3600) * Settings.HourlyRate,
+									sCurrencySymbol = getCurrencySymbol(Settings.Currency)
 								;
-								if (!counterPanelElement.length)
+								dTime.setSeconds(iTimeSeconds);
+								dCeilTime.setSeconds(iCeilSeconds);
+
+								if (App.isMobile())
 								{
-									panelCenterElement.before(counterPanel);
-									counterPanelElement = $('.compose-screen').find('.counter-panel');
+									var
+										counterPanelElement = $('.compose-screen').find('.counter-panel'),
+										panelCenterElement = $('.compose-screen').find('.editor-container'),
+										counterPanel = `<div style="box-sizing:border-box;display:flex;width: 100%;padding:0;margin-bottom:-1px;" class="counter-panel">${charactersCounter}${sessionCounter}${amountCounter}</div>`,
+										charactersCounter = `<div style="box-sizing:border-box;flex-grow:1;padding:2px 5px;border:1px solid #cccccc;border-bottom-left-radius:5px;border-top-left-radius:5px;border-right:0;background-color:#f0f0f0;"><span style="font-weight:bold;font-size:16px">${iTotalChar}</span></br><span style="color:#5a6373;">Characters</span></div>`,
+										wordsCounter = `<div style="box-sizing:border-box;flex-grow:1;padding:2px 5px;border:1px solid #cccccc;border-right:0;background-color:#f0f0f0;"><span style="font-weight:bold;font-size:16px">${iTotalWord}</span></br><span style="color:#5a6373;">Words</span></div>`,
+										sessionCounter = `<div style="box-sizing:border-box;flex-grow:1;padding:2px 5px;border:1px solid #cccccc;border-right:0;background-color:#f0f0f0;"><span style="font-weight:bold;font-size:16px">${dCeilTime.toISOString().substr(11, 8)} (${dTime.toISOString().substr(11, 8)})</span></br><span style="color:#5a6373;">Session Time</span></div>`,
+										amountCounter = `<div style="box-sizing:border-box;flex-grow:1;padding:2px 5px;border:1px solid #cccccc;background-color:#f0f0f0;border-bottom-right-radius:5px;border-top-right-radius:5px;"><span style="font-weight:bold;font-size:16px">${sCurrencySymbol}${iCeilAmount.toFixed(2)} (${sCurrencySymbol}${iAmount.toFixed(2)})</span></br><span style="color:#5a6373;">Amount</span></div>`
+									;
+									if (!counterPanelElement.length)
+									{
+										panelCenterElement.before(counterPanel);
+										counterPanelElement = $('.compose-screen').find('.counter-panel');
+									}
+									if (counterPanelElement.length)
+									{
+										counterPanelElement.html(`${charactersCounter}${sessionCounter}${amountCounter}`);
+									}
 								}
-								if (counterPanelElement.length)
+								else
 								{
-									counterPanelElement.html(`${charactersCounter}${sessionCounter}${amountCounter}`);
-								}
-							}
-							else
-							{
-								var
-									counterPanelElement = $('.message_panel').find('.counter-panel'),
-									panelCenterElement = $('.message_panel').find('.panel_center'),
-									counterPanel = `<div style="box-sizing:border-box;display:flex;width: 100%;padding: 0 12px;" class="counter-panel">${charactersCounter}${sessionCounter}${amountCounter}</div>`,
-									charactersCounter = `<div style="box-sizing:border-box;flex-grow:1;padding:15px;border:1px solid #cccccc;border-bottom-left-radius:5px;border-top-left-radius:5px;border-right:0;background-color:#f0f0f0;"><span style="font-weight:bold;font-size:16px">${iTotalChar}</span></br><span style="color:#5a6373;">Characters</span></div>`,
-									wordsCounter = `<div style="box-sizing:border-box;flex-grow:1;padding:15px;border:1px solid #cccccc;border-right:0;background-color:#f0f0f0;"><span style="font-weight:bold;font-size:16px">${iTotalWord}</span></br><span style="color:#5a6373;">Words</span></div>`,
-									sessionCounter = `<div style="box-sizing:border-box;flex-grow:1;padding:15px;border:1px solid #cccccc;border-right:0;background-color:#f0f0f0;"><span style="font-weight:bold;font-size:16px">${dCeilTime.toISOString().substr(11, 8)} (${dTime.toISOString().substr(11, 8)})</span></br><span style="color:#5a6373;">Session Time</span></div>`,
-									amountCounter = `<div style="box-sizing:border-box;flex-grow:1;padding:15px;border:1px solid #cccccc;background-color:#f0f0f0;border-bottom-right-radius:5px;border-top-right-radius:5px;"><span style="font-weight:bold;font-size:16px">${sCurrencySymbol}${iCeilAmount.toFixed(2)} (${sCurrencySymbol}${iAmount.toFixed(2)})</span></br><span style="color:#5a6373;">Amount</span></div>`
-								;
-								if (!counterPanelElement.length)
-								{
-									panelCenterElement.after(counterPanel);
-									counterPanelElement = $('.message_panel').find('.counter-panel');
-								}
-								if (counterPanelElement.length)
-								{
-									counterPanelElement.html(`${charactersCounter}${sessionCounter}${amountCounter}`);
+									var
+										counterPanelElement = $('.message_panel').find('.counter-panel'),
+										panelCenterElement = $('.message_panel').find('.panel_center'),
+										counterPanel = `<div style="box-sizing:border-box;display:flex;width: 100%;padding: 0 12px;" class="counter-panel">${charactersCounter}${sessionCounter}${amountCounter}</div>`,
+										charactersCounter = `<div style="box-sizing:border-box;flex-grow:1;padding:15px;border:1px solid #cccccc;border-bottom-left-radius:5px;border-top-left-radius:5px;border-right:0;background-color:#f0f0f0;"><span style="font-weight:bold;font-size:16px">${iTotalChar}</span></br><span style="color:#5a6373;">Characters</span></div>`,
+										wordsCounter = `<div style="box-sizing:border-box;flex-grow:1;padding:15px;border:1px solid #cccccc;border-right:0;background-color:#f0f0f0;"><span style="font-weight:bold;font-size:16px">${iTotalWord}</span></br><span style="color:#5a6373;">Words</span></div>`,
+										sessionCounter = `<div style="box-sizing:border-box;flex-grow:1;padding:15px;border:1px solid #cccccc;border-right:0;background-color:#f0f0f0;"><span style="font-weight:bold;font-size:16px">${dCeilTime.toISOString().substr(11, 8)} (${dTime.toISOString().substr(11, 8)})</span></br><span style="color:#5a6373;">Session Time</span></div>`,
+										amountCounter = `<div style="box-sizing:border-box;flex-grow:1;padding:15px;border:1px solid #cccccc;background-color:#f0f0f0;border-bottom-right-radius:5px;border-top-right-radius:5px;"><span style="font-weight:bold;font-size:16px">${sCurrencySymbol}${iCeilAmount.toFixed(2)} (${sCurrencySymbol}${iAmount.toFixed(2)})</span></br><span style="color:#5a6373;">Amount</span></div>`
+									;
+									if (!counterPanelElement.length)
+									{
+										panelCenterElement.after(counterPanel);
+										counterPanelElement = $('.message_panel').find('.counter-panel');
+									}
+									if (counterPanelElement.length)
+									{
+										counterPanelElement.html(`${charactersCounter}${sessionCounter}${amountCounter}`);
+									}
 								}
 							}
 						};
@@ -471,16 +475,27 @@ module.exports = function (oAppData) {
 				App.subscribeEvent('SendAjaxRequest::before', function (oParams) {
 					if (oParams.Module === 'Mail' && oParams.Method === 'SendMessage' && oParams.Parameters)
 					{
-						oParams.Parameters['CustomHeaders'] = {
-							'X-ComposeWordCounter-SenderClient': App.isMobile ? 'mobile' : 'desktop',
-							'X-ComposeWordCounter-ReadingSpeed': Settings.ReadingSpeedWPM,
-							'X-ComposeWordCounter-TypingSpeed': Settings.TypingSpeedCPM,
-							'X-ComposeWordCounter-Currency': Settings.Currency,
-							'X-ComposeWordCounter-HourlyRate': Settings.HourlyRate,
-							'X-ComposeWordCounter-BillingInterval': Settings.BillingInterval,
-							'X-ComposeWordCounter-TotalChar': iTotalChar,
-							'X-ComposeWordCounter-TotalWord': iTotalWord
-						};
+						if (Settings.UserRole === Enums.WordCounterUserRole.Lawyer)
+						{
+							oParams.Parameters['CustomHeaders'] = {
+								'X-ComposeWordCounter-SenderClient': App.isMobile ? 'mobile' : 'desktop',
+								'X-ComposeWordCounter-ReadingSpeed': Settings.ReadingSpeedWPM,
+								'X-ComposeWordCounter-TypingSpeed': Settings.TypingSpeedCPM,
+								'X-ComposeWordCounter-Currency': Settings.Currency,
+								'X-ComposeWordCounter-HourlyRate': Settings.HourlyRate,
+								'X-ComposeWordCounter-BillingInterval': Settings.BillingInterval,
+								'X-ComposeWordCounter-TotalChar': iTotalChar,
+								'X-ComposeWordCounter-TotalWord': iTotalWord
+							};
+						}
+						else
+						{
+							oParams.Parameters['CustomHeaders'] = {
+								'X-ComposeWordCounter-SenderClient': App.isMobile ? 'mobile' : 'desktop',
+								'X-ComposeWordCounter-TotalChar': iTotalChar,
+								'X-ComposeWordCounter-TotalWord': iTotalWord
+							};
+						}
 						iTotalChar = 0;
 						iTotalWord = 0;
 					}
