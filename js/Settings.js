@@ -29,16 +29,11 @@ module.exports = {
 
 		if (!_.isEmpty(oAppDataSection))
 		{
-			var
-				bDesktopEmpty = !oAppDataSection.TypingSpeedCPM || !oAppDataSection.ReadingSpeedWPM || !oAppDataSection.CurrencyId || !oAppDataSection.HourlyRate,
-				bMobileEmpty = !oAppDataSection.MobileTypingSpeedCPM || !oAppDataSection.MobileReadingSpeedWPM || !oAppDataSection.MobileCurrencyId || !oAppDataSection.MobileHourlyRate,
-				sPrefix = (bDesktopEmpty || App.isMobile()) && !bMobileEmpty ? 'Mobile' : ''
-			;
-			this.typingSpeedCPM(Types.isPositiveNumber(oAppDataSection[sPrefix + 'TypingSpeedCPM']) ? oAppDataSection[sPrefix + 'TypingSpeedCPM'] : this.typingSpeedCPM());
-			this.readingSpeedWPM(Types.isPositiveNumber(oAppDataSection[sPrefix + 'ReadingSpeedWPM']) ? oAppDataSection[sPrefix + 'ReadingSpeedWPM'] : this.readingSpeedWPM());
-			this.currency(Types.pEnum(oAppDataSection[sPrefix + 'CurrencyId'], Enums.Currency, this.currency()));
-			this.hourlyRate(Types.pInt(oAppDataSection[sPrefix + 'HourlyRate'], this.hourlyRate()));
-			this.BillingInterval = Types.pInt(oAppDataSection[sPrefix + 'BillingInterval'], this.BillingInterval);
+			this.typingSpeedCPM(Types.isPositiveNumber(oAppDataSection.TypingSpeedCPM) ? oAppDataSection.TypingSpeedCPM : this.typingSpeedCPM());
+			this.readingSpeedWPM(Types.isPositiveNumber(oAppDataSection.ReadingSpeedWPM) ? oAppDataSection.ReadingSpeedWPM : this.readingSpeedWPM());
+			this.currency(Types.pEnum(oAppDataSection.CurrencyId, Enums.Currency, this.currency()));
+			this.hourlyRate(Types.pInt(oAppDataSection.HourlyRate, this.hourlyRate()));
+			this.BillingInterval = Types.pInt(oAppDataSection.BillingInterval, this.BillingInterval);
 			this.userRole(Types.pEnum(oAppDataSection.UserRole, Enums.WordCounterUserRole, this.userRole()));
 		}
 	},

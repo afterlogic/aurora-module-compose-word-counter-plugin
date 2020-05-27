@@ -45,7 +45,8 @@ function CMobileSettingsView()
 		{ name: 'Medium',	value: 220 },
 		{ name: 'Fast',		value: 270 }
 	];
-	this.readingSpeed = ko.observable((Settings.readingSpeedWPM() === 220 || Settings.readingSpeedWPM() === 270) ? Settings.typingSpeedCPM() : 170);
+	
+	this.readingSpeed = ko.observable((Settings.readingSpeedWPM() === 220 || Settings.readingSpeedWPM() === 270) ? Settings.readingSpeedWPM() : 170);
 	this.readingSpeedWPM = ko.observable(Settings.readingSpeedWPM());
 	this.currencyValues = [
 		{ name: '$USD',		value: Enums.Currency.USD },

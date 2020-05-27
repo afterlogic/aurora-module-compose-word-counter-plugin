@@ -115,7 +115,35 @@ class Module extends \Aurora\System\Module\AbstractModule
 
 		return $this->aManagers[$sManager];
 	}
+	
+	private function _getSettings($bMobile)
+	{
+		$aSettings = null;
+		$oUser = \Aurora\System\Api::getAuthenticatedUser();
+		if (!empty($oUser) && $oUser->isNormalOrTenant())
+		{
+			$bDesktopEmpty = empty($oUser->{self::GetName().'::TypingSpeedCPM'}) && empty($oUser->{self::GetName().'::ReadingSpeedWPM'})
+							&& empty($oUser->{self::GetName().'::CurrencyId'})
+							&& empty($oUser->{self::GetName().'::HourlyRate'}) && empty($oUser->{self::GetName().'::BillingInterval'});
+			$bMobileEmpty = empty($oUser->{self::GetName().'::MobileTypingSpeedCPM'}) && empty($oUser->{self::GetName().'::MobileReadingSpeedWPM'})
+							&& empty($oUser->{self::GetName().'::MobileCurrencyId'})
+							&& empty($oUser->{self::GetName().'::MobileHourlyRate'}) && empty($oUser->{self::GetName().'::MobileBillingInterval'});
+			$bBothEmpty = $bDesktopEmpty && $bMobileEmpty;
+			$sMobilePrefix = ($bDesktopEmpty || $bMobile) && !$bMobileEmpty ? 'Mobile' : '';
+			
+			$aSettings = [
+				'TypingSpeedCPM' => $bBothEmpty ? 100 : $oUser->{self::GetName().'::' . $sMobilePrefix . 'TypingSpeedCPM'},
+				'ReadingSpeedWPM' => $bBothEmpty ? 170 : $oUser->{self::GetName().'::' . $sMobilePrefix . 'ReadingSpeedWPM'},
+				'CurrencyId' => $bBothEmpty ? 1 : $oUser->{self::GetName().'::' . $sMobilePrefix . 'CurrencyId'},
+				'HourlyRate' => $bBothEmpty ? 0 : $oUser->{self::GetName().'::' . $sMobilePrefix . 'HourlyRate'},
+				'BillingInterval' => $bBothEmpty ? 1 : $oUser->{self::GetName().'::' . $sMobilePrefix . 'BillingInterval'},
+				'UserRole' => $oUser->{self::GetName().'::UserRole'}
+			];
+		}
 
+		return $aSettings;
+	}
+	
 	/**
 	 * Obtains list of module settings for authenticated user.
 	 *
@@ -124,26 +152,8 @@ class Module extends \Aurora\System\Module\AbstractModule
 	public function GetSettings()
 	{
 		\Aurora\System\Api::checkUserRoleIsAtLeast(\Aurora\System\Enums\UserRole::Anonymous);
-		$aSettings = null;
-		$oUser = \Aurora\System\Api::getAuthenticatedUser();
-		if (!empty($oUser) && $oUser->isNormalOrTenant())
-		{
-			$aSettings = [
-				'TypingSpeedCPM'		=> $oUser->{self::GetName().'::TypingSpeedCPM'},
-				'ReadingSpeedWPM'		=> $oUser->{self::GetName().'::ReadingSpeedWPM'},
-				'CurrencyId'			=> $oUser->{self::GetName().'::CurrencyId'},
-				'HourlyRate'			=> $oUser->{self::GetName().'::HourlyRate'},
-				'BillingInterval'		=> $oUser->{self::GetName().'::BillingInterval'},
-				'MobileTypingSpeedCPM'	=> $oUser->{self::GetName().'::MobileTypingSpeedCPM'},
-				'MobileReadingSpeedWPM'	=> $oUser->{self::GetName().'::MobileReadingSpeedWPM'},
-				'MobileCurrencyId'		=> $oUser->{self::GetName().'::MobileCurrencyId'},
-				'MobileHourlyRate'		=> $oUser->{self::GetName().'::MobileHourlyRate'},
-				'MobileBillingInterval'	=> $oUser->{self::GetName().'::MobileBillingInterval'},
-				'UserRole'				=> $oUser->{self::GetName().'::UserRole'}
-			];
-		}
-
-		return $aSettings;
+		
+		return $this->_getSettings(\Aurora\System\Api::IsMobileApplication());
 	}
 
 	/**
@@ -352,63 +362,126 @@ class Module extends \Aurora\System\Module\AbstractModule
 		return $aResult;
 	}
 	
-	public function SendMessage($Hash, $To, $Subject, $Text)
+	private function _getDefaultAccount($oUser)
 	{
-		$mResult = false;
-		
-		if (!empty($Hash))
+		$aAccounts = \Aurora\Modules\Mail\Module::Decorator()->GetAccounts($oUser->EntityId);
+		$oDefaultAccount = null;
+		if (is_array($aAccounts))
 		{
-			$sData = \Aurora\System\Api::Cacher()->get('SSO:'.$Hash, true);
-			$aData = \Aurora\System\Api::DecodeKeyValues($sData);
-			if (isset($aData['Password'], $aData['Email']))
+			foreach ($aAccounts as $oAccount)
 			{
-				$aResult = \Aurora\Modules\Core\Module::Decorator()->Login($aData['Email'], $aData['Password']);
-				if (is_array($aResult) && isset($aResult['AuthToken']))
+				if ($oAccount->Email === $oUser->PublicId)
 				{
-					$oUser = \Aurora\System\Api::getAuthenticatedUser();
-					$aAccounts = \Aurora\Modules\Mail\Module::Decorator()->GetAccounts($oUser->EntityId);
-					$oDefaultAccount = null;
-					if (is_array($aAccounts))
-					{
-						foreach ($aAccounts as $oAccount)
-						{
-							if ($oAccount->Email === $oUser->PublicId)
-							{
-								$oDefaultAccount = $oAccount;
-							}
-						}
-					}
-					if ($oDefaultAccount)
-					{
-						$AccountID = $oDefaultAccount->EntityId;
-						$Fetcher = null;
-						$Alias = null;
-						$IdentityID = 0;
-						$DraftInfo = [];
-						$DraftUid = "";
-						$Cc = "";
-						$Bcc = "";
-						$IsHtml = true;
-						$Importance = \MailSo\Mime\Enumerations\MessagePriority::NORMAL;
-						$SendReadingConfirmation = false;
-						$Attachments = array();
-						$InReplyTo = "";
-						$References = "";
-						$Sensitivity = \MailSo\Mime\Enumerations\Sensitivity::NOTHING;
-						$SentFolder = "";
-						$DraftFolder = "";
-						$ConfirmFolder = "";
-						$ConfirmUid = "";
-						$CustomHeaders = [];
-						$mResult = \Aurora\Modules\Mail\Module::Decorator()->SendMessage($AccountID, $Fetcher, $Alias, $IdentityID,
-							$DraftInfo, $DraftUid, $To, $Cc, $Bcc, $Subject, $Text, $IsHtml, $Importance,
-							$SendReadingConfirmation, $Attachments, $InReplyTo, $References, $Sensitivity, $SentFolder,
-							$DraftFolder, $ConfirmFolder, $ConfirmUid, $CustomHeaders);
-					}
+					$oDefaultAccount = $oAccount;
 				}
 			}
 		}
+		return $oDefaultAccount;
+	}
+	
+	private function _getSentFolderFullName($oAccount)
+	{
+		$sSentFolderFullName = "";
 		
-		return $mResult;
+		$oFolderCollection = \Aurora\System\Api::GetModuleDecorator('Mail')->getMailManager()->getFolders($oAccount);
+		$oFolderCollection->foreachWithSubFolders(function ($oFolder) use (&$sSentFolderFullName) {
+			if ($oFolder && $oFolder->getType() === \Aurora\Modules\Mail\Enums\FolderType::Sent)
+			{
+				$sSentFolderFullName = $oFolder->getRawFullName();
+			}
+		});
+		
+		return $sSentFolderFullName;
+	}
+	
+	private function _getCustomHeaders($sText, $bMobileSenderClient, $oUser)
+	{
+		$aPatterns = [
+			'/<br *\/{0,1}>/',
+			'/<p[^>]*>/',
+			'/<\/p>/',
+			'/<div[^>]*>/',
+			'/<\/div>/'
+		];
+		$sPlainText = html_entity_decode(strip_tags(preg_replace($aPatterns, "\n", $sText)));
+		$iCharsCount = strlen($sPlainText);
+		$aWords = preg_split('/\s+/', $sPlainText, 0, PREG_SPLIT_NO_EMPTY);
+		$iWordsCount = count($aWords);
+		$CustomHeaders = [
+			'X-ComposeWordCounter-SenderClient' => $bMobileSenderClient ? 'mobile' : 'desktop',
+			'X-ComposeWordCounter-TotalChar' => $iCharsCount,
+			'X-ComposeWordCounter-TotalWord' => $iWordsCount
+		];
+		
+		if ($oUser->{self::GetName().'::UserRole'} === 1) // it is lawyer
+		{
+			$aSettings = $this->_getSettings($bMobileSenderClient);
+			$CustomHeaders['X-ComposeWordCounter-ReadingSpeed'] = $aSettings['ReadingSpeedWPM'];
+			$CustomHeaders['X-ComposeWordCounter-TypingSpeed'] = $aSettings['TypingSpeedCPM'];
+			$CustomHeaders['X-ComposeWordCounter-Currency'] = $aSettings['CurrencyId'];
+			$CustomHeaders['X-ComposeWordCounter-HourlyRate'] = $aSettings['HourlyRate'];
+			$CustomHeaders['X-ComposeWordCounter-BillingInterval'] = $aSettings['BillingInterval'];
+		}
+		
+		return $CustomHeaders;
+	}
+
+	public function SendMessage($Hash, $To, $Subject, $Text, $MobileSenderClient = false)
+	{
+		if (empty($Hash))
+		{
+			throw new \Aurora\System\Exceptions\ApiException(\Aurora\System\Notifications::InvalidInputParameter, null, 'There is no hash');
+		}
+		
+		$sData = \Aurora\System\Api::Cacher()->get('SSO:'.$Hash, true);
+		$aData = \Aurora\System\Api::DecodeKeyValues($sData);
+		if (!isset($aData['Password'], $aData['Email']))
+		{
+			throw new \Aurora\System\Exceptions\ApiException(\Aurora\System\Notifications::InvalidInputParameter, null, 'There is no data in hash');
+		}
+		
+		$aResult = \Aurora\Modules\Core\Module::Decorator()->Login($aData['Email'], $aData['Password']);
+		if (!is_array($aResult) && !isset($aResult['AuthToken']))
+		{
+			throw new \Aurora\System\Exceptions\ApiException(\Aurora\System\Notifications::AuthError, null, 'Can not sign in');
+		}
+		
+		$oUser = \Aurora\System\Api::getAuthenticatedUser();
+		if (!$oUser || !$oUser->isNormalOrTenant())
+		{
+			throw new \Aurora\System\Exceptions\ApiException(\Aurora\System\Notifications::AccessDenied, null, 'User is not found');
+		}
+		
+		$oDefaultAccount = $this->_getDefaultAccount($oUser);
+		if (!$oDefaultAccount)
+		{
+			throw new \Aurora\System\Exceptions\ApiException(\Aurora\System\Notifications::AccessDenied, null, 'User does not have default account');
+		}
+		
+		$AccountID = $oDefaultAccount->EntityId;
+		$Fetcher = null;
+		$Alias = null;
+		$IdentityID = 0;
+		$DraftInfo = [];
+		$DraftUid = "";
+		$Cc = "";
+		$Bcc = "";
+		$IsHtml = true;
+		$Importance = \MailSo\Mime\Enumerations\MessagePriority::NORMAL;
+		$SendReadingConfirmation = false;
+		$Attachments = array();
+		$InReplyTo = "";
+		$References = "";
+		$Sensitivity = \MailSo\Mime\Enumerations\Sensitivity::NOTHING;
+		$SentFolder = $this->_getSentFolderFullName($oDefaultAccount);
+		$DraftFolder = "";
+		$ConfirmFolder = "";
+		$ConfirmUid = "";
+		$CustomHeaders = $this->_getCustomHeaders($Text, $MobileSenderClient, $oUser);
+		
+		return \Aurora\Modules\Mail\Module::Decorator()->SendMessage($AccountID, $Fetcher, $Alias, $IdentityID,
+			$DraftInfo, $DraftUid, $To, $Cc, $Bcc, $Subject, $Text, $IsHtml, $Importance,
+			$SendReadingConfirmation, $Attachments, $InReplyTo, $References, $Sensitivity, $SentFolder,
+			$DraftFolder, $ConfirmFolder, $ConfirmUid, $CustomHeaders);
 	}
 }
